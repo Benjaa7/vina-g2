@@ -1,0 +1,50 @@
+% Anexo de la sección C. Requiere en el preámbulo: array, booktabs, longtable.
+
+\section*{Anexo C. Modelo dimensional: matrices y diccionario de datos}
+
+\subsection*{C.1 Matriz de hechos y calificadores}
+
+Incluye las cuatro preguntas del README y las dos que la contraparte planteó en la reunión del 4 de septiembre. En cada una, el verbo de medición es el hecho y cada ``por'' es un calificador.
+
+\begin{center}
+\small
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.40\textwidth}>{\raggedright\arraybackslash}p{0.25\textwidth}>{\raggedright\arraybackslash}p{0.28\textwidth}@{}}
+\toprule
+Pregunta del negocio & Hecho (qué se mide) & Calificadores (por dónde se corta) \\
+\midrule
+¿El precio por litro subió por precio o por mezcla? (README 2, la elegida) & Monto neto, litros & Tier, semestre, mercado \\
+¿Las exportaciones crecen en pesos? (README 1) & Monto neto en dólares y pesos, tipo de cambio & Mes, semestre, mercado \\
+¿Qué mercados crecieron en volumen y con qué margen? (README 3) & Litros, monto neto, costo total & Mercado, semestre, tier \\
+¿Qué fecha usar para convertir y qué ingreso comparar con el costo? (README 4) & Monto neto, costo total, tipo de cambio & Fecha de factura, fecha de embarque \\
+¿Cuántos litros vendemos de cada cepa y de cada tier? (reunión) & Litros & Cepa, tier, mercado, mes \\
+¿En qué mercados poner más esfuerzo? (reunión) & Litros, monto neto & Mercado, cliente, tier \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Lo que revela la matriz: el monto neto y los litros se repiten en casi todas las preguntas, así que comparten grano y van en la misma tabla de hechos. Tiempo, mercado y producto (tier y cepa) aparecen en varias preguntas: son las dimensiones conformadas. La fecha de embarque pertenece a otro proceso, el embarque, y por eso no entra a esta estrella.
+
+\subsection*{C.2 Matriz de bus}
+
+\begin{center}
+\small
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+Proceso & Tiempo & Producto & Cliente & Mercado & Incoterm \\
+\midrule
+Venta (modelada en la Entrega 1) & $\bullet$ & $\bullet$ & $\bullet$ & $\bullet$ & \\
+Embarque (candidato, JSON) & $\bullet$ & $\bullet$ & & $\bullet$ & $\bullet$ \\
+Cobranza (candidato, sin fechas de pago) & $\bullet$ & & $\bullet$ & $\bullet$ & \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Tiempo y mercado se repiten en los tres procesos: si cada área los definiera distinto, ningún cruce entre venta, embarque y cobranza cuadraría. Por eso se definen una sola vez.
+
+\subsection*{C.3 Dimensiones que cambian}
+
+Las fuentes son una foto sin historia de cambios, así que todas las dimensiones se cargan con tipo 1 (sobrescribir). Si en adelante el maestro de productos cambiara el costo o los litros por caja de un producto, habría que versionar ese atributo (tipo 2), para que las ventas pasadas conserven el valor vigente al momento de la venta.
+
+\subsection*{C.4 Diccionario de datos}
+
+\input{anexo_C_diccionario.tex}

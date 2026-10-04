@@ -1,0 +1,114 @@
+% Generado por src/generar_diccionario.py desde src/esquema.py. No editar a mano.
+
+\subsubsection*{\texttt{fact\_venta}}
+Hecho transaccional. Una fila por línea de venta facturada.
+
+{\footnotesize
+\begin{longtable}{@{}>{\raggedright\arraybackslash}p{0.19\textwidth}>{\raggedright\arraybackslash}p{0.1\textwidth}>{\raggedright\arraybackslash}p{0.085\textwidth}>{\raggedright\arraybackslash}p{0.205\textwidth}>{\raggedright\arraybackslash}p{0.27\textwidth}@{}}
+\toprule
+Columna & Rol & Aditiv. & Descripción & Origen y regla \\
+\midrule
+\endhead
+\texttt{venta\_id} & degenerada & — & Número de la línea en el ERP. & ventas.\allowbreak{}venta\_id; deduplicado tras normalizar formatos \\
+\texttt{fecha\_key} & llave & — & Fecha de factura. & ventas.\allowbreak{}fecha, leída en sus 4 formatos \\
+\texttt{producto\_anada\_key} & llave & — & Producto y añada vendidos. & ventas.\allowbreak{}producto\_id + ventas.\allowbreak{}anada \\
+\texttt{cliente\_key} & llave & — & Cliente que compra. & ventas.\allowbreak{}cliente\_id \\
+\texttt{mercado\_key} & llave & — & Mercado de destino. & ventas.\allowbreak{}mercado\_id (coincide con clientes.\allowbreak{}mercado\_id) \\
+\texttt{cajas} & medida & aditiva & Cajas vendidas; negativas si la línea es merma. & ventas.\allowbreak{}cajas; si vienen en botellas (12 o 10 veces las cajas del embarque), se dividen por el factor \\
+\texttt{litros} & medida & aditiva & Litros vendidos. & cajas $\times$ dim\_producto.\allowbreak{}litros\_por\_caja \\
+\texttt{monto\_bruto\_clp} & medida & aditiva & Monto antes de descuento, en pesos. & cajas $\times$ precio unitario; si la moneda es USD, $\times$ tipo\_cambio \\
+\texttt{monto\_bruto\_usd} & medida & aditiva & Monto antes de descuento, en dólares. & cajas $\times$ precio unitario; si la moneda es CLP, $\div$ tipo\_cambio \\
+\texttt{monto\_neto\_clp} & medida & aditiva & Ingreso neto de descuento, en pesos. & cajas $\times$ precio unitario $\times$ (1 $-$ descuento), convertido con tipo\_cambio \\
+\texttt{monto\_neto\_usd} & medida & aditiva & Ingreso neto de descuento, en dólares. & cajas $\times$ precio unitario $\times$ (1 $-$ descuento), convertido con tipo\_cambio \\
+\texttt{costo\_total\_clp} & medida & aditiva & Costo de producción de lo vendido, en pesos. & \textbar{}cajas\textbar{} $\times$ dim\_producto.\allowbreak{}costo\_caja\_clp; en la merma el costo no se reversa \\
+\texttt{tipo\_cambio} & contexto & no aditiva & Dólar observado usado para convertir la línea. & API mindicador.\allowbreak{}cl, fecha de factura; fines de semana y feriados con el último día hábil previo \\
+\texttt{es\_merma} & indicador & aditiva & 1 si la línea es merma (cajas negativas). & cajas < 0; merma según la contraparte (4 sep) \\
+\texttt{monto\_recalculado} & indicador & aditiva & 1 si el monto registrado no cuadraba y se recalculó. & \textbar{}monto registrado $-$ calculado\textbar{} > 0,5 \% \\
+\texttt{cajas\_corregidas} & indicador & aditiva & 1 si las cajas venían en botellas. & cruce con origen\_embarques.\allowbreak{}json \\
+\texttt{moneda\_imputada} & indicador & aditiva & 1 si la moneda venía vacía. & ventas.\allowbreak{}moneda\_id nulo; se imputa por mercado \\
+\bottomrule
+\end{longtable}
+}
+
+\subsubsection*{\texttt{dim\_tiempo}}
+Una fila por día calendario de 2025.
+
+{\footnotesize
+\begin{longtable}{@{}>{\raggedright\arraybackslash}p{0.19\textwidth}>{\raggedright\arraybackslash}p{0.1\textwidth}>{\raggedright\arraybackslash}p{0.085\textwidth}>{\raggedright\arraybackslash}p{0.205\textwidth}>{\raggedright\arraybackslash}p{0.27\textwidth}@{}}
+\toprule
+Columna & Rol & Aditiv. & Descripción & Origen y regla \\
+\midrule
+\endhead
+\texttt{fecha\_key} & llave & — & Llave AAAAMMDD. & generada \\
+\texttt{fecha} & atributo & — & Fecha. & calendario \\
+\texttt{dia\_semana} & atributo & — & Lunes a domingo. & calendario \\
+\texttt{semana} & atributo & — & Semana del año. & calendario \\
+\texttt{mes} & atributo & — & Mes (número y nombre). & calendario \\
+\texttt{trimestre} & atributo & — & Trimestre. & calendario \\
+\texttt{semestre} & atributo & — & Primer o segundo semestre. & calendario \\
+\texttt{anio} & atributo & — & Año. & calendario \\
+\texttt{es\_dia\_habil} & atributo & — & 1 si es día hábil. & 1 si la API del dólar publica valor ese día \\
+\texttt{es\_feriado} & atributo & — & 1 si es feriado. & día de semana sin valor publicado en la API \\
+\bottomrule
+\end{longtable}
+}
+
+\subsubsection*{\texttt{dim\_producto}}
+Una fila por producto y añada (24 productos $\times$ 4 añadas = 96 filas).
+
+{\footnotesize
+\begin{longtable}{@{}>{\raggedright\arraybackslash}p{0.19\textwidth}>{\raggedright\arraybackslash}p{0.1\textwidth}>{\raggedright\arraybackslash}p{0.085\textwidth}>{\raggedright\arraybackslash}p{0.205\textwidth}>{\raggedright\arraybackslash}p{0.27\textwidth}@{}}
+\toprule
+Columna & Rol & Aditiv. & Descripción & Origen y regla \\
+\midrule
+\endhead
+\texttt{producto\_anada\_key} & llave & — & Llave producto-añada. & generada \\
+\texttt{producto} & atributo & — & Nombre del vino. & origen\_costos\_productos.\allowbreak{}csv: producto \\
+\texttt{cepa} & atributo & — & Cepa, con el nombre oficial del catálogo del ERP. & CSV: cepa, normalizada desde sus alias y conformada a origen\_vina.\allowbreak{}sqlite: cepas.\allowbreak{}cepa; desempate en la bitácora \\
+\texttt{tipo\_vino} & atributo & — & Tinto o blanco. & origen\_vina.\allowbreak{}sqlite: cepas.\allowbreak{}tipo \\
+\texttt{tier} & atributo & — & Varietal, Reserva o Gran Reserva. & CSV: tier \\
+\texttt{formato} & atributo & — & 12 $\times$ 750 ml o 6 $\times$ 1500 ml. & CSV: formato \\
+\texttt{litros\_por\_caja} & atributo & — & Litros que rinde una caja: la definición de caja a litro. & CSV: litros\_por\_caja (9,0 para ambos formatos) \\
+\texttt{anada} & atributo & — & Año de cosecha. & CSV: anada \\
+\texttt{costo\_caja\_clp} & atributo & — & Costo unitario de producción por caja. & CSV: costo\_caja\_clp; si falta, regla exacta (tier, añada) \\
+\texttt{costo\_imputado} & atributo & — & 1 si el costo se imputó por regla. & generado \\
+\texttt{activo} & atributo & — & Si el producto sigue en catálogo. & CSV: activo (si/SI/Sí/1 = verdadero) \\
+\bottomrule
+\end{longtable}
+}
+
+\subsubsection*{\texttt{dim\_cliente}}
+Una fila por cliente (distribuidor o importador).
+
+{\footnotesize
+\begin{longtable}{@{}>{\raggedright\arraybackslash}p{0.19\textwidth}>{\raggedright\arraybackslash}p{0.1\textwidth}>{\raggedright\arraybackslash}p{0.085\textwidth}>{\raggedright\arraybackslash}p{0.205\textwidth}>{\raggedright\arraybackslash}p{0.27\textwidth}@{}}
+\toprule
+Columna & Rol & Aditiv. & Descripción & Origen y regla \\
+\midrule
+\endhead
+\texttt{cliente\_key} & llave & — & Llave del cliente. & generada \\
+\texttt{cliente\_id} & atributo & — & Código del ERP. & origen\_vina.\allowbreak{}sqlite: clientes.\allowbreak{}cliente\_id \\
+\texttt{nombre} & atributo & — & Razón social. & clientes.\allowbreak{}nombre \\
+\texttt{tipo} & atributo & — & Distribuidor o importador. & clientes.\allowbreak{}tipo \\
+\bottomrule
+\end{longtable}
+}
+
+\subsubsection*{\texttt{dim\_mercado}}
+Una fila por mercado de destino. País y zona son niveles de una misma jerarquía.
+
+{\footnotesize
+\begin{longtable}{@{}>{\raggedright\arraybackslash}p{0.19\textwidth}>{\raggedright\arraybackslash}p{0.1\textwidth}>{\raggedright\arraybackslash}p{0.085\textwidth}>{\raggedright\arraybackslash}p{0.205\textwidth}>{\raggedright\arraybackslash}p{0.27\textwidth}@{}}
+\toprule
+Columna & Rol & Aditiv. & Descripción & Origen y regla \\
+\midrule
+\endhead
+\texttt{mercado\_key} & llave & — & Llave del mercado. & generada \\
+\texttt{pais} & atributo & — & País de destino. & origen\_vina.\allowbreak{}sqlite: mercados.\allowbreak{}pais \\
+\texttt{zona} & atributo & — & Zona comercial. & mercados.\allowbreak{}zona\_id $\rightarrow$ zonas.\allowbreak{}zona; zona 8 inexistente (Corea del Sur) se asigna a Asia \\
+\texttt{canal} & atributo & — & Nacional o Exportación. & mercados.\allowbreak{}canal \\
+\texttt{hemisferio} & atributo & — & Norte o sur. & derivado del país (Chile y Brasil: sur) \\
+\texttt{moneda\_facturacion} & atributo & — & CLP o USD. & monedas.\allowbreak{}moneda; en los datos la moneda queda determinada por el mercado (Chile CLP, resto USD); el ETL verifica que no haya excepciones \\
+\bottomrule
+\end{longtable}
+}

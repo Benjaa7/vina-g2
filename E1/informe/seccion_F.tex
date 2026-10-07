@@ -1,0 +1,10 @@
+\section{Cobertura de datos, calidad y bitácora}
+
+A partir del universo de 13.983 registros transaccionales extraídos de la base operacional (\texttt{origen\_vina.sqlite}), se excluyó un total de 221 líneas correspondientes a un \textbf{1,6\,\% de registros descartados por calidad}: 138 filas por duplicidad estricta y 83 filas registradas con fechas fuera del período contable 2025. Adicionalmente, 3.090 líneas correspondientes al canal doméstico (Chile) quedaron excluidas exclusivamente por \textbf{alcance analítico}, al estar el mandato enfocado estrictamente en la operación de exportación.
+
+El universo útil para el cálculo de la métrica asciende a \textbf{10.672 líneas de venta}. Siguiendo el principio de no descartar transacciones recuperables, se aplicaron correcciones sin exclusión a: 555 líneas con montos netos discordantes (recalculados mediante componentes de facturación), 151 líneas con unidades registradas erróneamente en botellas individuales en lugar de cajas (rectificadas con el maestro de embarques), 698 registros con moneda faltante (imputados según mercado) y 1.852 registros de costo faltante (imputados mediante la regla paramétrica de \textit{tier} y añada).
+
+El detalle de cada supuesto metodológico y su impacto cuantitativo se encuentra registrado en el \textbf{Anexo F: Bitácora de Supuestos}.
+
+\subsection*{Declaración de uso de Inteligencia Artificial}
+En cumplimiento con las normas éticas del curso IIC3752, se declara el uso de modelos de lenguaje (Claude de Anthropic y Gemini de Google) como herramientas de asistencia técnica para la estructuración de scripts de extracción y limpieza, optimización de sintaxis LaTeX y revisión de estilo en la redacción analítica. Todas las decisiones de negocio, reglas de diseño dimensional y cifras numéricas presentadas fueron auditadas y validadas contra las ejecuciones reproducibles del código fuente sobre los datos oficiales del caso.

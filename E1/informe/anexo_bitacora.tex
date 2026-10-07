@@ -1,0 +1,36 @@
+\section*{Anexo F: Bitácora de Supuestos}
+\addcontentsline{toc}{section}{Anexo F: Bitácora de Supuestos}
+
+\begin{longtable}{p{0.6cm} p{3.2cm} c p{4.2cm} p{4.2cm} p{2.2cm}}
+\toprule
+\textbf{ID} & \textbf{Supuesto} & \textbf{Tipo} & \textbf{Justificación} & \textbf{Efecto si fuera falso} & \textbf{Decisión} \\
+\midrule
+\endhead
+
+\textbf{S1} & Equivalencia de 9,0\,L por caja en ambos formatos (12$\times$750\,ml y 6$\times$1500\,ml). & M/I & Declarado en maestro de costos (M). Precio unitario en Gran Reserva coincide en $\sim$USD 77,2 (M), confirmando equivalencia física (I). & Si magnum rindiera 18\,L, precio medio anual caería a 4,47 USD/L ($-7,5\,\%$); si rindiera 4,5\,L, subiría a 5,03 USD/L ($+4,2\,\%$). Conclusión se mantiene. & Equipo (4--8 sep) \\
+\midrule
+\textbf{S2} & Corrección de cajas registradas como botellas individuales (/12 o /10). & M & Discrepancia sistemática detectada y validada contra cantidades en \texttt{origen\_embarques.json} (151 filas). & De no corregirse, los litros se sobreestimarían artificialmente, distorsionando a la baja el precio promedio por litro. & Equipo (sep 2026) \\
+\midrule
+\textbf{S3} & Recálculo de monto neto cuando difiere $>0,5\,\%$ de $Cajas \times P_{u} \times (1-D)$. & V/M & 95\,\% cuadra exacto (M). Gerencia declaró que ``en esta empresa no se pierde ni un peso'' (V). Discrepancia atribuible a ruido operacional. & Si se utilizara el monto crudo (asumiendo rebates no declarados), se introduciría una distorsión agregada de CLP 2.782 millones. & Equipo (sep 2026) \\
+\midrule
+\textbf{S4} & Imputación de moneda nula: ventas nacionales en CLP, exportación en USD. & M & Registros nulos (5\,\%) sin sesgo. Rangos de valor separan claramente montos CLP ($>20.000$) de USD (20--80). & Filas mal convertidas; error de escala masivo al omitir la tasa de cambio en exportación. & Equipo (sep 2026) \\
+\midrule
+\textbf{S5} & Imputación paramétrica de costos unitarios según \textit{tier} y añada. & M & Las 81 filas completas del maestro de costos siguen una matriz paramétrica determinista por \textit{tier} y vendimia. & No altera el precio por litro ni la facturación, pero afectaría el cálculo de margen bruto en un 17,4\,\% de las filas. & Equipo (sep 2026) \\
+\midrule
+\textbf{S6} & Conversión a CLP mediante dólar observado de la fecha de facturación. & V/I & Sin política formal (V). Cierre contable y fiscal se realiza por fecha de factura (V). & A fecha de embarque el ingreso en CLP varía $-0,69\,\%$; a fecha de cobranza (60/90 días) varía $-1,44\,\%$. No afecta USD/L. & Equipo y Contraparte (4 sep) \\
+\midrule
+\textbf{S7} & Registros negativos corresponden a merma: reducen litros e ingreso, sin reversar costo. & V/I & Vino producido y descartado operacionalmente (V). Costo ya devengado. & Si se reversara el costo, el margen bruto subiría artificialmente de 47,25\,\% a 48,05\,\% (brecha de CLP 419 millones). & Contraparte (V) y Equipo (I) (4 sep) \\
+\midrule
+\textbf{S8} & Comparación H1 vs H2 mide cambio estructural y no solo estacionalidad. & M/I & Evaluado mediante comportamiento mensual continuo y mercado de control (Brasil, hemisferio sur). & Si fuera 100\,\% estacional por compras de fin de año en el norte, la premiumización sería cíclica y requeriría gestión de stock estacional. & Equipo (oct 2026) \\
+\midrule
+\textbf{S9} & Análisis de mezcla descompuesto a nivel de \textit{tier} (3 categorías). & I & Nivel natural indicado por el mandato gerencial y por la dispersión de precios unitarios. & Descomponer a nivel de 24 productos absorbe variaciones menores entre cepas, pero no altera el predominio de la premiumización. & Equipo (sep 2026) \\
+\midrule
+\textbf{S10} & Dólar observado representa el tipo de cambio spot liquidado (sin derivados). & I & No se reportó contratación de instrumentos de cobertura cambiaría en la entrevista. & Existencia de contratos forward alteraría el ingreso percibido en CLP, sin efecto en la facturación pactada en USD. & Equipo (sep 2026) \\
+\midrule
+\textbf{S11} & Contratos europeos facturados en USD prescindiendo del riesgo cambiario EUR. & V/M & Contraparte declaró que la venta se pacta en USD aunque el cliente pague en EUR (V). Carencia de paridad USD/EUR en fuentes (M). & Afectaría la rentabilidad de distribuidores europeos, pero no el valor FOB facturado por la viña. & Contraparte y Equipo (4 sep) \\
+\midrule
+\textbf{S12} & Formato ambiguo de fechas interpretado preferentemente como \texttt{DD/MM/AAAA}. & M & Contrastado y confirmado en 1.281 registros consistentes contra la columna \texttt{mes} frente a solo 7 casos anómalos (M). & Impacto acotado a un máximo de 7 transacciones desplazadas de mes, con nula incidencia en la agregación semestral. & Equipo (sep 2026) \\
+\midrule
+\textbf{S13} & Zona inexistente (Zona 8 / Corea del Sur) asignada a macro-zona Asia. & I & Coherencia geográfica evidente con los mercados catalogados. & Sin impacto en métricas de precio o volumen; previene inconsistencias referenciales en \texttt{dim\_mercado}. & Equipo (sep 2026) \\
+\bottomrule
+\end{longtable}

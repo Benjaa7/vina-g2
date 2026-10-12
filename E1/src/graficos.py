@@ -53,8 +53,9 @@ def leer(nombre):
 def guardar(fig, nombre):
     fig.text(0.5, 0.01, FUENTE, ha="center", va="bottom", fontsize=7.5, color="#555555")
     fig.tight_layout(rect=(0, 0.07, 1, 1))
-    for ext in ("png", "pdf"):
-        fig.savefig(SALIDA / f"{nombre}.{ext}")
+    fig.savefig(SALIDA / f"{nombre}.png")
+    # sin fecha de creación, para que el PDF no cambie entre ejecuciones
+    fig.savefig(SALIDA / f"{nombre}.pdf", metadata={"CreationDate": None})
     plt.close(fig)
 
 

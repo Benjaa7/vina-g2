@@ -55,7 +55,7 @@ python run.py
 
 **API del dólar:** mindicador.cl puede tardar (entre 8 y 30 segundos por año en nuestras pruebas). La cadena espera hasta 60 segundos por año; si la API no responde o falla, usa el respaldo `datos/raw/dolar_<año>.json` y los resultados son idénticos (se verificó byte a byte con ambas fuentes). Al final, el bloque `FUENTE DEL DÓLAR` dice qué se usó para cada año, por ejemplo `Dólar 2025: API mindicador.cl (OK)` o `Dólar 2025: API no respondió (...) → respaldo datos/raw/dolar_2025.json`.
 
-**Tiempo:** alrededor de 1 minuto con la API (unos 20 s de proceso más la espera de la API); unos 20 s sin red; hasta unos 2,5 minutos en el peor caso, si la API no contesta y se agotan los 60 s de espera de cada año.
+**Tiempo:** alrededor de 1 minuto con la API (unos 20 s de proceso más la espera de la API) y unos 20 s sin red. Si la API no responde, la cadena espera hasta 60 s por año (2025 y 2026) antes de usar el respaldo, así que puede tardar hasta unos 2 minutos y 10 segundos; los resultados son idénticos.
 
 **Qué se espera ver al final.** El bloque `VERIFICACIÓN` con las 8 cifras en `[OK]` y el proceso termina con código 0 (si alguna no calza, termina con código 1):
 
@@ -67,7 +67,17 @@ python run.py
 | Precio medio anual | 4,83 USD/L |
 | Magnum, % del volumen y de los ingresos | 8,07 % y 13,76 % |
 
-Archivos que deja en `output/`: `cifras.md`, `cobertura.md`, `tabla_integrada.csv` (13.845 filas), `estrella/*.csv`, `tablas/*.csv` y `figuras/figura1..4` en PDF y PNG.
+### Qué genera la cadena
+
+| Archivo en `output/` | Para qué sirve |
+|---|---|
+| `cifras.md` | Cada cifra del informe, cómo se calcula y si el valor escrito coincide con los datos (empieza con un resumen). |
+| `cobertura.md` | Qué pasó con cada venta: cuántas se excluyeron, cuántas se corrigieron y por qué. |
+| `tablas/*.csv` | Los datos detrás de cada figura y de cada sensibilidad (descomposición por método, por mercado, mensual). |
+| `figuras/figura1..4` | Las figuras de la sección E, en PDF (para LaTeX) y PNG. |
+| `tabla_integrada.csv` | Todas las ventas limpias en una sola tabla (13.845 filas); no se versiona, se regenera. |
+| `estrella/*.csv` | El modelo dimensional: `fact_venta` y sus cuatro dimensiones; no se versiona, se regenera. |
+| `discrepancias.md` | Lo que hay que corregir en el informe; es el único archivo de `output/` escrito a mano. |
 
 ### Otros comandos
 

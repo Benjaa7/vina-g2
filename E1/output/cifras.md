@@ -1,152 +1,168 @@
 # Cifras del informe
 
-Generado por `src/metrica.py` (vía `python run.py`). No editar a mano.
+Este archivo lista cada cifra del informe del Grupo 2 (caso Viña Vallehondo, pregunta 2: el precio promedio por litro de exportación subió en 2025, ¿por alza de precios o por mayor proporción de Gran Reserva?), explica cómo se calcula y dice si el valor escrito en el informe coincide con los datos. Las cifras salen de las cuatro fuentes del caso (ERP de ventas, maestro de costos, embarques y dólar observado) después de la limpieza descrita en `cobertura.md`. Lo genera `src/metrica.py` al correr `python run.py`; no se edita a mano.
 
-Universo de la métrica: exportación, fecha de factura en 2025, tras las reglas de `cobertura.md`. «Dónde» cita archivo:línea de `informe/` (A = seccion_A.tex, C = seccion_C.tex, E = seccion_E.tex, F = seccion_F.tex, Sn = anexo_bitacora.tex). «Texto»: ✔ si el valor del informe coincide al redondeo publicado; ✘ si no; – si la cifra no aparece en el texto.
+## Resumen
+
+- El precio medio de exportación subió de 4,574 USD por litro en el 1.er semestre de 2025 (S1, enero a junio) a 5,085 en el 2.º semestre (S2, julio a diciembre), un alza de 11,2 %, mientras los litros exportados bajaron 1,5 %.
+- El alza se explica por la mezcla, no por los precios: Gran Reserva pasó de 22,7 % a 32,5 % de los litros. El efecto mezcla aporta 0,551 USD/L (108 % del alza) y el efecto precio -0,035 USD/L. Con cualquiera de los cuatro métodos de descomposición, la mezcla explica entre 106,9 % y 107,9 % del alza.
+- Los precios de lista bajaron levemente (entre -0,15 % y -0,19 % según el tier) y el descuento medio subió de 3,82 % a 4,40 %. Comparando el mismo tier en el mismo mercado, el precio por litro cambió apenas -0,006 USD/L.
+- La conclusión no depende de cuántos litros rinda el magnum: con 18 o 4,5 litros por caja el precio anual sería 4,47 o 5,03 USD/L en vez de 4,83, y la mezcla sigue explicando más del 100 % del alza (tabla `tablas/sensibilidades.csv`).
+- De las 79 cifras del informe que se pudieron contrastar con los datos, 65 coinciden. No coinciden: Efecto mezcla (método principal); Supuesto S3: diferencia si se usara el monto registrado, exportación; Supuesto S3: ídem, todos los canales de 2025; Supuesto S6: ingreso en pesos a fecha de embarque vs. a fecha de factura; Supuesto S6: ingreso en pesos a fecha de cobranza vs. a fecha de factura; Supuesto S12: ambiguas que coinciden con la columna mes leídas como mes/día; y 8 de los 10 valores de la figura 4. El detalle de qué corregir está en `discrepancias.md`.
+
+## Cómo leer las tablas
+
+- **Cifra**: qué se mide.
+- **Valor**: el resultado que entrega la cadena con los datos actuales.
+- **Cómo se calcula**: la definición en una línea.
+- **Dónde aparece en el informe**: archivo y línea del `.tex` en `informe/` (sección A = `seccion_A.tex`, etc.; «Bitácora» = `anexo_bitacora.tex`). «Marcada por confirmar» indica que el informe la tiene pendiente de verificación.
+- **¿Coincide?**: ✔ el valor del informe coincide con el de los datos al redondeo con que está escrito; ✘ no coincide (entre paréntesis, lo que dice el informe); – la cifra no aparece en el informe (es de apoyo, una sensibilidad o un hallazgo nuevo).
+
+Términos: **1.er semestre** = facturas de enero a junio de 2025; **2.º semestre** = julio a diciembre. **Universo** = ventas de exportación facturadas en 2025 (10.672). **Tier** = Varietal, Reserva o Gran Reserva. **Magnum** = formato 6x1500 (6 botellas de 1,5 L). **pp** = puntos porcentuales. **Supuesto Sn** = fila n de la bitácora de supuestos del anexo (no confundir con los semestres). **Ingreso neto** = después de descuento. **Sensibilidad** = la misma cifra calculada con otra definición, para ver si la conclusión cambia.
 
 
-## Métrica
+## 1. Precio medio por litro de exportación (métrica principal)
 
-| Cifra | Valor | Definición | Dónde | Texto |
+| Cifra | Valor | Cómo se calcula | Dónde aparece en el informe | ¿Coincide? |
 |---|---:|---|---|---|
-| Precio medio S1 | 4,574 USD/L | Σ neto USD / Σ litros; exportación, factura ene–jun 2025 | A:20, E:5, fig. 1 | ✔ |
-| Precio medio S2 | 5,085 USD/L | ídem, factura jul–dic 2025 | A:20, E:5, fig. 1 | ✔ |
-| Variación S1→S2 | 11,2 % | precio S2 / precio S1 − 1 | A:20 [por confirmar], E:5 | ✔ |
-| Precio medio anual | 4,83 USD/L | Σ neto USD / Σ litros, año 2025 | A:37, S1 | ✔ |
-| Litros S1 | 5.763.411 L | Σ cajas corregidas × 9,0 | E:5 | ✔ |
-| Litros S2 | 5.674.554 L | ídem | E:5, E:9 | ✔ |
-| Variación de litros | -1,5 % | litros S2 / S1 − 1 | E:5 | ✔ |
-| Ingreso neto S1 | 26,36 M USD | Σ monto neto USD | E:5 | ✔ |
-| Ingreso neto S2 | 28,85 M USD | ídem | E:5 | ✔ |
-| Variación del ingreso | 9,5 % | ingreso S2 / S1 − 1 | E:5 | ✔ |
+| Precio medio, 1.er semestre (ene-jun) | 4,574 USD/L | Ingreso neto en dólares ÷ litros; ventas de exportación facturadas entre enero y junio de 2025 | Sección A, línea 20; Sección E, línea 5; Figura 1 | ✔ |
+| Precio medio, 2.º semestre (jul-dic) | 5,085 USD/L | Ídem, facturas entre julio y diciembre de 2025 | Sección A, línea 20; Sección E, línea 5; Figura 1 | ✔ |
+| Variación del precio medio | 11,2 % | Precio del 2.º semestre ÷ precio del 1.er semestre − 1 | Sección A, línea 20 (marcada «por confirmar»); Sección E, línea 5 | ✔ |
+| Precio medio anual 2025 | 4,83 USD/L | Ingreso neto en dólares ÷ litros, año completo | Sección A, línea 37; Bitácora, supuesto S1 | ✔ |
+| Litros exportados, 1.er semestre | 5.763.411 L | Cajas (corregidas) × 9 litros por caja | Sección E, línea 5 | ✔ |
+| Litros exportados, 2.º semestre | 5.674.554 L | Ídem | Sección E, líneas 5 y 9 | ✔ |
+| Variación de los litros | -1,5 % | Litros del 2.º semestre ÷ litros del 1.er semestre − 1 | Sección E, línea 5 | ✔ |
+| Ingreso neto, 1.er semestre | 26,36 M USD | Suma del monto neto (después de descuento) | Sección E, línea 5 | ✔ |
+| Ingreso neto, 2.º semestre | 28,85 M USD | Ídem | Sección E, línea 5 | ✔ |
+| Variación del ingreso neto | 9,5 % | Ingreso del 2.º semestre ÷ ingreso del 1.er semestre − 1 | Sección E, línea 5 | ✔ |
 
-## Mezcla y precios
+## 2. Mezcla por tier, precios de lista y descuento
 
-| Cifra | Valor | Definición | Dónde | Texto |
+| Cifra | Valor | Cómo se calcula | Dónde aparece en el informe | ¿Coincide? |
 |---|---:|---|---|---|
-| Varietal: % de los litros S1 | 42,6 % | litros del tier / litros totales | E:7, fig. 2 | ✔ |
-| Varietal: % de los litros S2 | 33,3 % | ídem | E:7, fig. 2 | ✔ |
-| Reserva: % de los litros S1 | 34,7 % | litros del tier / litros totales | fig. 2 | ✔ |
-| Reserva: % de los litros S2 | 34,2 % | ídem | fig. 2 | ✔ |
-| Gran Reserva: % de los litros S1 | 22,7 % | litros del tier / litros totales | A:20, E:7, fig. 2 | ✔ |
-| Gran Reserva: % de los litros S2 | 32,5 % | ídem | A:20, E:7, fig. 2 | ✔ |
-| Gran Reserva: cambio | 9,8 pp | S2 − S1 | E:7 | ✔ |
-| Varietal: cambio | -9,3 pp | S2 − S1 | E:7 | ✔ |
-| Precio de lista Varietal S1 | 23,65 USD/caja | precio unitario ponderado por cajas | fig. 3 | ✔ |
-| Precio de lista Varietal S2 | 23,61 USD/caja | ídem | fig. 3 | ✔ |
-| Variación de lista Varietal | -0,15 % | lista S2 / S1 − 1 | A:20, E:7 (rango «entre −0,15 % y −0,19 %») | ✔ |
-| Precio de lista Reserva S1 | 43,67 USD/caja | precio unitario ponderado por cajas | fig. 3 | ✔ |
-| Precio de lista Reserva S2 | 43,60 USD/caja | ídem | fig. 3 | ✔ |
-| Variación de lista Reserva | -0,16 % | lista S2 / S1 − 1 | A:20, E:7 (rango «entre −0,15 % y −0,19 %») | – |
-| Precio de lista Gran Reserva S1 | 77,30 USD/caja | precio unitario ponderado por cajas | fig. 3 | ✔ |
-| Precio de lista Gran Reserva S2 | 77,15 USD/caja | ídem | fig. 3 | ✔ |
-| Variación de lista Gran Reserva | -0,19 % | lista S2 / S1 − 1 | A:20, E:7 (rango «entre −0,15 % y −0,19 %») | ✔ |
-| Descuento medio S1 | 3,82 % | descuento ponderado por cajas | A:20, E:7 | ✔ |
-| Descuento medio S2 | 4,40 % | ídem | A:20, E:7 | ✔ |
+| Varietal: participación en los litros, 1.er semestre | 42,6 % | Litros del tier ÷ litros totales exportados | Sección E, línea 7; Figura 2 | ✔ |
+| Varietal: participación en los litros, 2.º semestre | 33,3 % | Ídem | Sección E, línea 7; Figura 2 | ✔ |
+| Reserva: participación en los litros, 1.er semestre | 34,7 % | Litros del tier ÷ litros totales exportados | Figura 2 | ✔ |
+| Reserva: participación en los litros, 2.º semestre | 34,2 % | Ídem | Figura 2 | ✔ |
+| Gran Reserva: participación en los litros, 1.er semestre | 22,7 % | Litros del tier ÷ litros totales exportados | Sección A, línea 20; Sección E, línea 7; Figura 2 | ✔ |
+| Gran Reserva: participación en los litros, 2.º semestre | 32,5 % | Ídem | Sección A, línea 20; Sección E, línea 7; Figura 2 | ✔ |
+| Gran Reserva: cambio de participación | 9,8 pp | Participación del 2.º semestre − la del 1.er semestre (puntos porcentuales) | Sección E, línea 7 | ✔ |
+| Varietal: cambio de participación | -9,3 pp | Ídem | Sección E, línea 7 | ✔ |
+| Precio de lista Varietal, 1.er semestre | 23,65 USD/caja | Precio unitario antes de descuento, promedio ponderado por cajas | Figura 3 | ✔ |
+| Precio de lista Varietal, 2.º semestre | 23,61 USD/caja | Ídem | Figura 3 | ✔ |
+| Variación del precio de lista Varietal | -0,15 % | Lista del 2.º semestre ÷ lista del 1.er semestre − 1 | Sección A, línea 20; Sección E, línea 7 (rango «entre −0,15 % y −0,19 %») | ✔ |
+| Precio de lista Reserva, 1.er semestre | 43,67 USD/caja | Precio unitario antes de descuento, promedio ponderado por cajas | Figura 3 | ✔ |
+| Precio de lista Reserva, 2.º semestre | 43,60 USD/caja | Ídem | Figura 3 | ✔ |
+| Variación del precio de lista Reserva | -0,16 % | Lista del 2.º semestre ÷ lista del 1.er semestre − 1 | Sección A, línea 20; Sección E, línea 7 (rango «entre −0,15 % y −0,19 %») | – |
+| Precio de lista Gran Reserva, 1.er semestre | 77,30 USD/caja | Precio unitario antes de descuento, promedio ponderado por cajas | Figura 3 | ✔ |
+| Precio de lista Gran Reserva, 2.º semestre | 77,15 USD/caja | Ídem | Figura 3 | ✔ |
+| Variación del precio de lista Gran Reserva | -0,19 % | Lista del 2.º semestre ÷ lista del 1.er semestre − 1 | Sección A, línea 20; Sección E, línea 7 (rango «entre −0,15 % y −0,19 %») | ✔ |
+| Descuento medio, 1.er semestre | 3,82 % | Descuento de cada venta, promedio ponderado por cajas | Sección A, línea 20; Sección E, línea 7 | ✔ |
+| Descuento medio, 2.º semestre | 4,40 % | Ídem | Sección A, línea 20; Sección E, línea 7 | ✔ |
 
-## Descomposición
+## 3. Descomposición del alza: ¿precio o mezcla?
 
-| Cifra | Valor | Definición | Dónde | Texto |
+| Cifra | Valor | Cómo se calcula | Dónde aparece en el informe | ¿Coincide? |
 |---|---:|---|---|---|
-| Efecto precio (principal) | -0,035 USD/L | Σ s1·Δp por tier | fig. 1 | ✔ |
-| Efecto mezcla (principal) | 0,551 USD/L | Σ Δs·p1 por tier | E:9, fig. 1 | ✘ (texto: 0,552 USD/L) |
-| Efecto cruzado (principal) | -0,005 USD/L | Σ Δs·Δp por tier | fig. 1 | ✔ |
-| Mezcla, % del cambio (principal) | 108 % | efecto mezcla / (S2 − S1) | E:5, fig. 1 | ✔ |
-| Precio, % del cambio (principal) | -7 % | efecto precio / (S2 − S1) | fig. 1 | ✔ |
-| Simétrico de punto medio: mezcla | 0,549 USD/L | precio -0,038 USD/L; mezcla = 107,4 % del cambio | sensibilidad | – |
-| Secuencial, mezcla primero: mezcla | 0,551 USD/L | precio -0,041 USD/L; mezcla = 107,9 % del cambio | sensibilidad | – |
-| Secuencial, precio primero: mezcla | 0,546 USD/L | precio -0,035 USD/L; mezcla = 106,9 % del cambio | sensibilidad | – |
-| Mezcla, % del cambio: mínimo entre métodos | 106,9 % | 4 métodos | sensibilidad | – |
-| Mezcla, % del cambio: máximo entre métodos | 107,9 % | 4 métodos | sensibilidad | – |
-| Precio dentro de un mismo mercado y tier | -0,006 USD/L | Σ s1·Δp por celda tier × mercado | nuevo (no está en E) | – |
-| Mezcla de mercados dentro de cada tier | -0,033 USD/L | mezcla por celda tier × mercado − mezcla por tier | nuevo (no está en E) | – |
-| Término cruzado por celda | -0,002 USD/L | Σ Δs·Δp por celda | nuevo (no está en E) | – |
+| Efecto precio (método principal) | -0,035 USD/L | Cambio del precio por litro de cada tier, ponderado por su participación en el 1.er semestre | Figura 1 | ✔ |
+| Efecto mezcla (método principal) | 0,551 USD/L | Cambio de la participación de cada tier, valorado al precio por litro del 1.er semestre | Sección E, línea 9; Figura 1 | ✘ (el informe dice 0,552 USD/L) |
+| Efecto cruzado (método principal) | -0,005 USD/L | Cambio de participación × cambio de precio (no se atribuye a uno solo) | Figura 1 | ✔ |
+| Mezcla como % del alza (método principal) | 108 % | Efecto mezcla ÷ alza total del precio (más de 100 % porque el efecto precio es negativo) | Sección E, línea 5; Figura 1 | ✔ |
+| Precio como % del alza (método principal) | -7 % | Efecto precio ÷ alza total del precio | Figura 1 | ✔ |
+| Efecto mezcla, método simétrico de punto medio | 0,549 USD/L | Sensibilidad. Efecto precio -0,038 USD/L; la mezcla explica 107,4 % del alza | No aparece en el informe | – |
+| Efecto mezcla, método secuencial, mezcla primero | 0,551 USD/L | Sensibilidad. Efecto precio -0,041 USD/L; la mezcla explica 107,9 % del alza | No aparece en el informe | – |
+| Efecto mezcla, método secuencial, precio primero | 0,546 USD/L | Sensibilidad. Efecto precio -0,035 USD/L; la mezcla explica 106,9 % del alza | No aparece en el informe | – |
+| Mezcla como % del alza: mínimo entre los 4 métodos | 106,9 % | Sensibilidad | No aparece en el informe | – |
+| Mezcla como % del alza: máximo entre los 4 métodos | 107,9 % | Sensibilidad | No aparece en el informe | – |
+| Precio dentro de un mismo mercado y tier | -0,006 USD/L | Parte del efecto precio que es cambio de precio real, comparando el mismo tier en el mismo mercado | No aparece en el informe | – |
+| Mezcla de mercados dentro de cada tier | -0,033 USD/L | Parte del efecto precio que viene de vender más en mercados de menor precio | No aparece en el informe | – |
+| Término cruzado por mercado y tier | -0,002 USD/L | Resto de la separación anterior; las tres partes suman el efecto precio más el cruzado | No aparece en el informe | – |
 
-## Caso de negocio
+## 4. Caso de negocio
 
-| Cifra | Valor | Definición | Dónde | Texto |
+| Cifra | Valor | Cómo se calcula | Dónde aparece en el informe | ¿Coincide? |
 |---|---:|---|---|---|
-| Mezcla × litros S2 | 3,13 M USD | efecto mezcla principal × litros S2 | E:9 | ✔ |
-| Ídem con el método simétrico | 3,115 M USD | sensibilidad |  | – |
-| Tipo de cambio efectivo S2 | 946,34 CLP/USD | Σ neto CLP / Σ neto USD, dólar del día de la factura | E:9 | ✔ |
-| Mezcla en pesos | 2.961 M CLP | M USD × TC S2 | E:9 (E:11 lo redondea a 3.000) | ✔ |
+| Valor de la mezcla en el 2.º semestre | 3,13 M USD | Efecto mezcla (método principal) × litros del 2.º semestre | Sección E, línea 9 | ✔ |
+| Ídem con el método simétrico | 3,115 M USD | Sensibilidad | No aparece en el informe | – |
+| Tipo de cambio efectivo del 2.º semestre | 946,34 CLP/USD | Ingreso neto en pesos ÷ ingreso neto en dólares, con el dólar del día de cada factura | Sección E, línea 9 | ✔ |
+| Valor de la mezcla en pesos | 2.961 M CLP | Valor en dólares × tipo de cambio efectivo del 2.º semestre | Sección E, línea 9 (la línea 11 lo redondea a 3.000) | ✔ |
 
-## Magnum
+## 5. Formato magnum y litros por caja
 
-| Cifra | Valor | Definición | Dónde | Texto |
+| Cifra | Valor | Cómo se calcula | Dónde aparece en el informe | ¿Coincide? |
 |---|---:|---|---|---|
-| Magnum: % del volumen | 8,07 % | litros 6x1500 / litros totales | pedido | ✔ |
-| Magnum: % del ingreso | 13,76 % | neto USD 6x1500 / total | pedido | ✔ |
-| Magnum: precio de lista por caja | 77,26 USD/caja | lista ponderada por cajas | A:35 | ✔ |
-| Gran Reserva estándar: precio de lista por caja | 77,20 USD/caja | ídem, GR 12x750 | A:35 | ✔ |
-| Magnum: neto por caja | 74,05 USD/caja | Σ neto / Σ cajas | aclaración para A:35 | – |
-| Gran Reserva estándar: neto por caja | 74,08 USD/caja | ídem | aclaración para A:35 | – |
-| Precio anual si el magnum rinde 18 L | 4,47 USD/L | sensibilidad a) | A:37 [por confirmar], S1 | ✔ |
-| Precio anual si el magnum rinde 4,5 L | 5,03 USD/L | sensibilidad a) | A:37 [por confirmar], S1 | ✔ |
-| Diferencia con 18 L | -7,5 % | vs 9 L | S1 | ✔ |
-| Diferencia con 4,5 L | 4,2 % | vs 9 L | S1 | ✔ |
+| Magnum: participación en el volumen | 8,07 % | Litros de formato 6x1500 ÷ litros totales exportados | Verificación pedida por el equipo | ✔ |
+| Magnum: participación en el ingreso | 13,76 % | Ingreso neto de formato 6x1500 ÷ ingreso neto total | Verificación pedida por el equipo | ✔ |
+| Magnum: precio de lista por caja | 77,26 USD/caja | Precio antes de descuento, ponderado por cajas | Sección A, línea 35 | ✔ |
+| Gran Reserva estándar (12x750): precio de lista por caja | 77,20 USD/caja | Ídem | Sección A, línea 35 | ✔ |
+| Magnum: ingreso neto por caja | 74,05 USD/caja | Ingreso neto ÷ cajas | Aclaración para la sección A, línea 35 | – |
+| Gran Reserva estándar: ingreso neto por caja | 74,08 USD/caja | Ídem | Aclaración para la sección A, línea 35 | – |
+| Precio anual si el magnum rindiera 18 litros por caja | 4,47 USD/L | Sensibilidad: solo cambian los litros del formato 6x1500 | Sección A, línea 37 (marcada «por confirmar»); Bitácora, supuesto S1 | ✔ |
+| Precio anual si el magnum rindiera 4,5 litros por caja | 5,03 USD/L | Ídem | Sección A, línea 37 (marcada «por confirmar»); Bitácora, supuesto S1 | ✔ |
+| Diferencia con 18 litros | -7,5 % | Contra el precio anual con 9 litros | Bitácora, supuesto S1 | ✔ |
+| Diferencia con 4,5 litros | 4,2 % | Contra el precio anual con 9 litros | Bitácora, supuesto S1 | ✔ |
 
-## Universo y cobertura
+## 6. Universo y cobertura de datos
 
-| Cifra | Valor | Definición | Dónde | Texto |
+| Cifra | Valor | Cómo se calcula | Dónde aparece en el informe | ¿Coincide? |
 |---|---:|---|---|---|
-| Filas crudas de ventas | 13.983 | origen_vina.sqlite: ventas | F:3 | ✔ |
-| Filas de fact_venta | 13.845 | tras deduplicar; incluye 2026 y nacional | C:21 [por confirmar] | ✔ |
-| Universo de la métrica | 10.672 | exportación, factura 2025 | C:21 [por confirmar], F:5 | ✔ |
-| Filas de dim_producto | 96 | 24 productos × 4 añadas | C:27 [por confirmar] | ✔ |
-| Duplicados | 138 | regla 1 | F:3 | ✔ |
-| Facturas de 2026 | 83 | regla 7 | F:3 | ✔ |
-| Excluidas por calidad | 221 | duplicados + 2026 | F:3 | ✔ |
-| Excluidas por calidad, % | 1,6 % | sobre 13.983 | F:3 | ✔ |
-| Nacionales 2025 | 3.090 | fuera por alcance | F:3 | ✔ |
-| Montos recalculados (universo) | 555 | regla 5 | F:5 | ✔ |
-| Cajas en botellas (universo) | 151 | regla 4 | F:5 | ✔ |
-| Moneda imputada (todas las filas crudas) | 698 | regla 3 | F:5 | ✔ |
-| Moneda imputada (universo) | 542 | regla 3; F:5 mezcla bases | F:5 | – |
-| Costo imputado (universo) | 1.852 | par ausente o N/A | F:5 | ✔ |
+| Ventas registradas | 13.983 | Filas de la tabla ventas del ERP | Sección F, línea 3 | ✔ |
+| Filas del modelo (tabla fact_venta) | 13.845 | Ventas sin duplicados; incluye las de 2026 y las nacionales | Sección C, línea 21 (marcada «por confirmar») | ✔ |
+| Universo de la métrica | 10.672 | Ventas de exportación facturadas en 2025 | Sección C, línea 21 (marcada «por confirmar»); Sección F, línea 5 | ✔ |
+| Filas de la dimensión producto | 96 | 24 productos × 4 añadas | Sección C, línea 27 (marcada «por confirmar») | ✔ |
+| Duplicados eliminados | 138 | Misma venta registrada dos veces | Sección F, línea 3 | ✔ |
+| Facturas de 2026 excluidas | 83 | Fuera del período analizado | Sección F, línea 3 | ✔ |
+| Excluidas por problemas de datos | 221 | Duplicados + facturas de 2026 | Sección F, línea 3 | ✔ |
+| Excluidas por problemas de datos, % | 1,6 % | Sobre las ventas registradas | Sección F, línea 3 | ✔ |
+| Ventas nacionales de 2025 (fuera del alcance) | 3.090 | La pregunta es sobre exportación | Sección F, línea 3 | ✔ |
+| Montos netos recalculados (universo) | 555 | El monto registrado difería más de 0,5 % de cajas × precio × (1 − descuento) | Sección F, línea 5 | ✔ |
+| Ventas cargadas en botellas (universo) | 151 | Cajas divididas por 12 o 10 según el embarque | Sección F, línea 5 | ✔ |
+| Monedas vacías asignadas (todas las ventas registradas) | 698 | Se asigna por mercado | Sección F, línea 5 | ✔ |
+| Monedas vacías asignadas (universo) | 542 | Ídem, solo dentro del universo (la sección F mezcla ambas bases) | Sección F, línea 5 | – |
+| Costos imputados (universo) | 1.852 | El maestro no traía costo para ese producto y añada | Sección F, línea 5 | ✔ |
 
-## Bitácora
+## 7. Bitácora de supuestos (anexo)
 
-| Cifra | Valor | Definición | Dónde | Texto |
+| Cifra | Valor | Cómo se calcula | Dónde aparece en el informe | ¿Coincide? |
 |---|---:|---|---|---|
-| S3: distorsión con monto crudo, exportación | 2.095,7 M CLP | Σ (neto registrado − neto final) en CLP, universo | S3 | ✘ (texto: 2.782,0 M CLP) |
-| S3: ídem, todos los canales 2025 | 855,2 M CLP | ídem, facturas 2025 de ambos canales | S3 | ✘ (texto: 2.782,0 M CLP) |
-| S3: filas que cuadran a ±0,5 % | 94,5 % | 13.845 filas de fact_venta | S3 («95 %») | ✔ |
-| S4: moneda vacía | 5,0 % | filas crudas | S4 | ✔ |
-| S5: filas con costo imputado | 17,4 % | universo | S5 | ✔ |
-| S6: CLP a fecha de embarque vs factura | -0,91 % | Σ neto CLP; fecha de embarque no confiable (regla 8) | S6 | ✘ (texto: -0,69 %) |
-| S6: CLP a fecha de cobranza vs factura | -2,14 % | Σ neto CLP; factura + 60 días sur / + 90 norte; dólar 2025 y 2026 | S6 | ✘ (texto: -1,44 %) |
-| S7: margen bruto (costo de la merma sin reversar) | 47,25 % | 1 − Σ costo |cajas| / Σ neto CLP, universo | S7 | ✔ |
-| S7: margen si se reversara el costo de la merma | 48,05 % | costo con signo | S7 | ✔ |
-| S7: brecha | 419 M CLP | costo |cajas| − costo con signo | S7 | ✔ |
-| S8: Brasil, Gran Reserva % litros S1 | 22,7 % | mercado de control (hemisferio sur) | S8 | – |
-| S8: Brasil, Gran Reserva % litros S2 | 31,5 % | ídem | S8 | – |
-| S8: Gran Reserva % litros, mes mínimo | 19,8 % | mes 1 (serie en tablas/mensual.csv) | S8 | – |
-| S8: Gran Reserva % litros, mes máximo | 35,9 % | mes 11 | S8 | – |
-| S12: fechas dd/mm/aaaa ambiguas (día ≤ 12) | 1.387 | filas crudas | S12 | – |
-| S12: ambiguas que calzan con la columna mes como dd/mm | 1.281 |  | S12 | ✔ |
-| S12: ambiguas que calzan con la columna mes como mm/dd | 121 |  | S12 («7 casos») | ✘ (texto: 7) |
-| S12: filas cuya columna mes no coincide con la fecha | 981 | todos los formatos, también ISO | S12 | – |
+| Supuesto S3: diferencia si se usara el monto registrado, exportación | 2.095,7 M CLP | Monto neto registrado − monto neto corregido, en pesos, dentro del universo | Bitácora, supuesto S3 | ✘ (el informe dice 2.782,0 M CLP) |
+| Supuesto S3: ídem, todos los canales de 2025 | 855,2 M CLP | Ídem, facturas de 2025 de exportación y nacionales | Bitácora, supuesto S3 | ✘ (el informe dice 2.782,0 M CLP) |
+| Supuesto S3: ventas cuyo monto cuadra a ±0,5 % | 94,5 % | Sobre las 13.845 filas del modelo | Bitácora, supuesto S3 (dice «95 %») | ✔ |
+| Supuesto S4: ventas sin moneda | 5,0 % | Sobre las ventas registradas | Bitácora, supuesto S4 | ✔ |
+| Supuesto S5: ventas con costo imputado | 17,4 % | Dentro del universo | Bitácora, supuesto S5 | ✔ |
+| Supuesto S6: ingreso en pesos a fecha de embarque vs. a fecha de factura | -0,91 % | Diferencia del ingreso total en pesos; la fecha de embarque no es confiable | Bitácora, supuesto S6 | ✘ (el informe dice -0,69 %) |
+| Supuesto S6: ingreso en pesos a fecha de cobranza vs. a fecha de factura | -2,14 % | Cobranza = factura + 60 días (hemisferio sur) o + 90 (norte); dólar observado 2025 y 2026 | Bitácora, supuesto S6 | ✘ (el informe dice -1,44 %) |
+| Supuesto S7: margen bruto (sin reversar el costo de la merma) | 47,25 % | 1 − costo total ÷ ingreso neto en pesos, dentro del universo | Bitácora, supuesto S7 | ✔ |
+| Supuesto S7: margen si se reversara el costo de la merma | 48,05 % | Ídem, restando el costo de las líneas negativas | Bitácora, supuesto S7 | ✔ |
+| Supuesto S7: diferencia de costo | 419 M CLP | Costo con cajas en valor absoluto − costo con signo | Bitácora, supuesto S7 | ✔ |
+| Supuesto S8: Brasil, Gran Reserva en los litros, 1.er semestre | 22,7 % | Mercado de control del hemisferio sur | Bitácora, supuesto S8 | – |
+| Supuesto S8: Brasil, Gran Reserva en los litros, 2.º semestre | 31,5 % | Ídem | Bitácora, supuesto S8 | – |
+| Supuesto S8: Gran Reserva en los litros, mes más bajo | 19,8 % | Enero (serie completa en tablas/mensual.csv) | Bitácora, supuesto S8 | – |
+| Supuesto S8: Gran Reserva en los litros, mes más alto | 35,9 % | Noviembre | Bitácora, supuesto S8 | – |
+| Supuesto S12: fechas dd/mm/aaaa ambiguas (día ≤ 12) | 1.387 | Ventas registradas cuya fecha se podría leer como día/mes o mes/día | Bitácora, supuesto S12 | – |
+| Supuesto S12: ambiguas que coinciden con la columna mes leídas como día/mes | 1.281 |  | Bitácora, supuesto S12 | ✔ |
+| Supuesto S12: ambiguas que coinciden con la columna mes leídas como mes/día | 121 |  | Bitácora, supuesto S12 (dice «7 casos») | ✘ (el informe dice 7) |
+| Supuesto S12: ventas cuya columna mes no coincide con la fecha | 981 | En todos los formatos, también en fechas sin ambigüedad | Bitácora, supuesto S12 | – |
 
-## Figura 4
+## 8. Figura 4: Gran Reserva por mercado
 
-| Cifra | Valor | Definición | Dónde | Texto |
+| Cifra | Valor | Cómo se calcula | Dónde aparece en el informe | ¿Coincide? |
 |---|---:|---|---|---|
-| Corea del Sur: Gran Reserva % litros (anual) | 25,3 % | S1 21,7 % → S2 29,4 % | fig. 4 | ✘ (texto: 28,1 %) |
-| China: Gran Reserva % litros (anual) | 27,0 % | S1 23,4 % → S2 30,9 % | fig. 4 | ✔ |
-| Brasil: Gran Reserva % litros (anual) | 26,6 % | S1 22,7 % → S2 31,5 % | fig. 4 | ✘ (texto: 27,8 %) |
-| México: Gran Reserva % litros (anual) | 27,2 % | S1 23,1 % → S2 31,7 % | fig. 4 | ✘ (texto: 28,5 %) |
-| Estados Unidos: Gran Reserva % litros (anual) | 27,1 % | S1 21,1 % → S2 32,6 % | fig. 4 | ✘ (texto: 26,5 %) |
-| Países Bajos: Gran Reserva % litros (anual) | 29,2 % | S1 23,1 % → S2 33,2 % | fig. 4 | ✔ |
-| Alemania: Gran Reserva % litros (anual) | 27,9 % | S1 23,3 % → S2 33,2 % | fig. 4 | ✘ (texto: 25,8 %) |
-| Canadá: Gran Reserva % litros (anual) | 28,3 % | S1 23,7 % → S2 33,3 % | fig. 4 | ✘ (texto: 27,4 %) |
-| Reino Unido: Gran Reserva % litros (anual) | 27,4 % | S1 22,0 % → S2 33,3 % | fig. 4 | ✘ (texto: 25,3 %) |
-| Japón: Gran Reserva % litros (anual) | 29,2 % | S1 23,0 % → S2 35,3 % | fig. 4 | ✘ (texto: 26,2 %) |
+| Corea del Sur: Gran Reserva en los litros, año 2025 | 25,3 % | 1.er semestre 21,7 % → 2.º semestre 29,4 % | Figura 4 (versión anterior) | ✘ (el informe dice 28,1 %) |
+| China: Gran Reserva en los litros, año 2025 | 27,0 % | 1.er semestre 23,4 % → 2.º semestre 30,9 % | Figura 4 (versión anterior) | ✔ |
+| Brasil: Gran Reserva en los litros, año 2025 | 26,6 % | 1.er semestre 22,7 % → 2.º semestre 31,5 % | Figura 4 (versión anterior) | ✘ (el informe dice 27,8 %) |
+| México: Gran Reserva en los litros, año 2025 | 27,2 % | 1.er semestre 23,1 % → 2.º semestre 31,7 % | Figura 4 (versión anterior) | ✘ (el informe dice 28,5 %) |
+| Estados Unidos: Gran Reserva en los litros, año 2025 | 27,1 % | 1.er semestre 21,1 % → 2.º semestre 32,6 % | Figura 4 (versión anterior) | ✘ (el informe dice 26,5 %) |
+| Países Bajos: Gran Reserva en los litros, año 2025 | 29,2 % | 1.er semestre 23,1 % → 2.º semestre 33,2 % | Figura 4 (versión anterior) | ✔ |
+| Alemania: Gran Reserva en los litros, año 2025 | 27,9 % | 1.er semestre 23,3 % → 2.º semestre 33,2 % | Figura 4 (versión anterior) | ✘ (el informe dice 25,8 %) |
+| Canadá: Gran Reserva en los litros, año 2025 | 28,3 % | 1.er semestre 23,7 % → 2.º semestre 33,3 % | Figura 4 (versión anterior) | ✘ (el informe dice 27,4 %) |
+| Reino Unido: Gran Reserva en los litros, año 2025 | 27,4 % | 1.er semestre 22,0 % → 2.º semestre 33,3 % | Figura 4 (versión anterior) | ✘ (el informe dice 25,3 %) |
+| Japón: Gran Reserva en los litros, año 2025 | 29,2 % | 1.er semestre 23,0 % → 2.º semestre 35,3 % | Figura 4 (versión anterior) | ✘ (el informe dice 26,2 %) |
 
 ## Notas
 
-- **S3:** los CLP 2.782 M de la bitácora no se reproducen con ninguna de las dos definiciones de arriba. El autor de S3 debe aclarar qué sumó.
-- **Efecto mezcla (E:9, fig. 1):** el valor es 0,5515 USD/L, que redondea a 0,551; los derivados (108 %, USD 3,13 M, CLP ≈ 2.960 M) sí coinciden.
-- **S6:** la bitácora usaba el último dólar de 2025 para las fechas posteriores al 30-dic-2025; ahora se usa el dólar observado de 2026 (API /dolar/2026), por eso cambia.
-- **Figura 4:** se regenera desde `tablas/fig4_gran_reserva_mercado.csv` y ahora muestra S1 y S2 por mercado. Los valores escritos a mano en la versión anterior no salían de los datos.
-- **S6:** la fecha de embarque no es confiable (regla 8); la cifra se informa solo porque la bitácora la cita.
+- **Supuesto S3:** los CLP 2.782 millones de la bitácora no se reproducen con ninguna de las dos definiciones de la tabla 7. Quien escribió el supuesto debe aclarar qué sumó.
+- **Efecto mezcla (sección E, línea 9; figura 1):** el valor es 0,5515 USD/L, que redondea a 0,551. Las cifras que se derivan de él (108 %, USD 3,13 millones, CLP ≈ 2.960 millones) sí coinciden.
+- **Supuesto S6:** la fecha de embarque no es confiable (en 30 % de las ventas es anterior a la factura), así que la cifra se informa solo porque la bitácora la cita. Además, la versión anterior usaba el último dólar de 2025 para las fechas posteriores al 30 de diciembre de 2025; ahora se usa el dólar observado de 2026, y por eso cambia.
+- **Figura 4:** ahora se genera desde `tablas/fig4_gran_reserva_mercado.csv` y muestra el 1.er y el 2.º semestre por mercado. Los valores escritos a mano en la versión anterior no salían de los datos.
+- **Métodos de descomposición:** el principal es el de la sección E (base 1.er semestre, con término cruzado). Los otros tres (simétrico, mezcla primero y precio primero) dan la mezcla entre 0,546 y 0,551 USD/L; detalle en `tablas/descomposicion_metodos.csv`.

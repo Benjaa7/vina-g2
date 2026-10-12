@@ -55,10 +55,12 @@ class Registro:
     def __init__(self):
         self.ventas = []
         self.otras = []
+        self.datos = {}   # cifras sueltas para el resumen de cobertura.md
 
-    def regla(self, num, nombre, accion, filas, etapa="limpia"):
-        self.ventas.append({"num": num, "regla": nombre, "accion": accion,
-                            "filas": set(filas), "etapa": etapa})
+    def regla(self, tema, hallazgo, accion, filas, etapa="limpia", grupo="correccion"):
+        """grupo: exclusion | correccion | formato | dolar | verificacion."""
+        self.ventas.append({"tema": tema, "regla": hallazgo, "accion": accion,
+                            "filas": set(filas), "etapa": etapa, "grupo": grupo})
 
     def otra(self, fuente, hallazgo, cantidad, unidad, accion):
         self.otras.append({"fuente": fuente, "hallazgo": hallazgo, "cantidad": cantidad,
@@ -209,7 +211,7 @@ def limpiar_costos(costos, costos_descartadas, cepas, anadas, reg):
     reg.otra("CSV costos", "activo como si/SI/Sí/1", len(c), "filas",
              f"{int(c['activo'].sum())} verdaderos")
     reg.otra("CSV costos", "litros_por_caja distinto de 9,0",
-             int((c["litros_por_caja"] != 9.0).sum()), "filas", "ninguna acción (regla 9)")
+             int((c["litros_por_caja"] != 9.0).sum()), "filas", "ninguna acción")
 
     # atributos fijos del producto (deben ser únicos por producto)
     attrs = ["producto", "cepa", "tier", "formato", "litros_por_caja"]
@@ -281,17 +283,20 @@ def limpiar_embarques(embarques, lineas, ventas_ids, ventas_fecha, ventas_mercad
              ", ".join(f"{k} {v}" for k, v in fmt.items()) + ")", len(e), "embarques",
              "parseada; no se usa para la métrica")
     reg.otra("JSON embarques", "Embarques con fecha en 2026", int((e["fecha"].dt.year == 2026).sum()),
-             "embarques", "no se usa la fecha (regla 8)")
+             "embarques", "no se usa la fecha del embarque")
     x = l.merge(e[["emb_idx", "fecha", "mercado_id", "incoterm"]], on="emb_idx")
     x["fecha_venta"] = x["venta_id"].map(ventas_fecha)
     x["mercado_venta"] = x["venta_id"].map(ventas_mercado)
+    reg.datos.update(lineas_embarque=len(x),
+                     embarque_mercado_distinto=int((x["mercado_id"] != x["mercado_venta"]).sum()),
+                     embarque_antes_factura=int((x["fecha"] < x["fecha_venta"]).sum()))
     reg.otra("JSON embarques", "mercado_id del embarque distinto del de la venta",
-             int((x["mercado_id"] != x["mercado_venta"]).sum()), "líneas", "no se usa el mercado (regla 8)")
+             int((x["mercado_id"] != x["mercado_venta"]).sum()), "líneas", "no se usa el mercado del embarque")
     reg.otra("JSON embarques", "Embarque con fecha anterior a la factura",
-             int((x["fecha"] < x["fecha_venta"]).sum()), "líneas", "no se usa la fecha (regla 8)")
+             int((x["fecha"] < x["fecha_venta"]).sum()), "líneas", "no se usa la fecha del embarque")
     reg.otra("JSON embarques", "Factura 2025 con embarque en 2026",
              int(((x["fecha_venta"].dt.year == 2025) & (x["fecha"].dt.year == 2026)).sum()),
-             "líneas", "no se usa la fecha (regla 8)")
+             "líneas", "no se usa la fecha del embarque")
     return x[["venta_id", "cajas", "incoterm", "fecha"]].rename(
         columns={"cajas": "cajas_embarque", "fecha": "fecha_embarque"})
 
@@ -314,17 +319,17 @@ def limpiar(f):
     # --- fechas (anexo C) ---
     v["fecha_factura"], v["formato_fecha"] = parsear_fechas(v["fecha"])
     for fmt, n in v["formato_fecha"].value_counts().items():
-        reg.regla("C", f"Fecha en formato {fmt}", "parseada",
-                  v.loc[v["formato_fecha"] == fmt, "fila"], etapa="crudo")
+        reg.regla("Formato de fechas", f"Fecha escrita como {fmt}", "leída en su formato",
+                  v.loc[v["formato_fecha"] == fmt, "fila"], "crudo", "formato")
     invalidas = v["fecha_factura"].isna()
-    reg.regla("C", "Fecha inválida o no reconocida", "excluida", v.loc[invalidas, "fila"], "crudo")
+    reg.regla("Formato de fechas", "Fecha inválida o no reconocida", "se excluiría", v.loc[invalidas, "fila"], "crudo", "verificacion")
     v = v[~invalidas].copy()
     v["anio"] = v["fecha_factura"].dt.year
     v["mes_num"] = v["fecha_factura"].dt.month
     v["semestre"] = np.where(v["mes_num"] <= 6, 1, 2)
-    reg.regla("C", "Columna mes distinta del mes de la fecha",
+    reg.regla("Columna mes del ERP", "La columna mes no coincide con el mes de la fecha",
               "se ignora; mes y semestre salen de la fecha",
-              v.loc[v["mes"].astype(int) != v["mes_num"], "fila"], "crudo")
+              v.loc[v["mes"].astype(int) != v["mes_num"], "fila"], "crudo", "verificacion")
     dia_texto = pd.to_numeric(v["fecha"].str.extract(r"^(\d{1,2})/", expand=False))
     amb = (v["formato_fecha"] == "dd/mm/aaaa") & (dia_texto <= 12)
     calza_mmdd = amb & (dia_texto == v["mes"].astype(int))
@@ -334,36 +339,36 @@ def limpiar(f):
         "ambiguas_calzan_mmdd": int(calza_mmdd.sum()),
         "mes_discrepante": int((v["mes"].astype(int) != v["mes_num"]).sum()),
     }
-    reg.regla("C", f"dd/mm/aaaa con día ≤ 12 (ambigua; {int(calza_mmdd.sum())} calzarían con "
-              f"la columna mes leídas como mm/dd)", "se lee como dd/mm", v.loc[amb, "fila"], "crudo")
-    reg.regla("C", "Columna zona distinta de la zona del mercado", "se ignora; zona sale de mercados",
-              v.loc[v["zona_texto"] != v["zona"], "fila"], "crudo")
-    reg.regla("C", "Mercado con zona inexistente (zona_id 8, Corea del Sur)", "zona = Asia",
+    reg.regla("Formato de fechas", f"Fecha dd/mm/aaaa con día ≤ 12 (ambigua; {int(calza_mmdd.sum())} calzarían con "
+              f"la columna mes leídas como mm/dd)", "se lee como dd/mm", v.loc[amb, "fila"], "crudo", "verificacion")
+    reg.regla("Columna zona del ERP", "La columna zona no coincide con la zona del mercado", "se ignora; la zona sale de la tabla mercados",
+              v.loc[v["zona_texto"] != v["zona"], "fila"], "crudo", "verificacion")
+    reg.regla("Zona de Corea del Sur", "Mercado con zona inexistente (zona_id 8)", "se asigna la zona Asia",
               v.loc[v["mercado_id"].map(mercados.set_index("mercado_id")["zona_id"]) == 8, "fila"], "crudo")
 
     # --- regla 2: precio, monto, descuento, cajas ---
     nac = v["canal"] == "Nacional"
     for (canal, patron), g in v.groupby([v["canal"], patron_numero(v["precio_unitario"])]):
-        reg.regla(2, f"Precio {canal.lower()}: {patron}",
+        reg.regla("Formato de precio unitario", f"Precio {canal.lower()}: {patron}",
                   "CLP con punto de miles" if canal == "Nacional" else "USD con punto o coma decimal",
-                  g["fila"], "crudo")
+                  g["fila"], "crudo", "formato")
     v["precio_unitario_num"] = numero_por_canal(v["precio_unitario"], nac)
     v["monto_registrado"] = numero_por_canal(v["monto_neto"], nac)
-    reg.regla(2, "Monto neto con $", "se quita el símbolo",
-              v.loc[v["monto_neto"].str.contains("$", regex=False), "fila"], "crudo")
+    reg.regla("Formato de monto neto", "Monto neto con $", "se quita el símbolo",
+              v.loc[v["monto_neto"].str.contains("$", regex=False), "fila"], "crudo", "formato")
     v["descuento_num"] = descuento(v["descuento"])
     for nota, m in [("entero (8 = 8 %)", v["descuento"].str.fullmatch(r"[1-9]\d*")),
                     ("con % (8%)", v["descuento"].str.endswith("%")),
                     ("fracción con coma (0,08)", v["descuento"].str.contains(",", regex=False))]:
-        reg.regla(2, f"Descuento {nota}", "llevado a fracción", v.loc[m, "fila"], "crudo")
+        reg.regla("Formato de descuento", f"Descuento {nota}", "llevado a fracción", v.loc[m, "fila"], "crudo", "formato")
     if v["descuento_num"].isna().any() or not v["descuento_num"].between(0, 0.5).all():
         raise ValueError("descuento fuera de rango")
     v["cajas_original"] = v["cajas"].astype(int)
     # verificación por rangos: CLP entre 1.000 y 1.000.000, USD entre 1 y 1.000
     rango_ok = np.where(nac, v["precio_unitario_num"].between(1_000, 1_000_000),
                         v["precio_unitario_num"].between(1, 1_000))
-    reg.regla(2, "Precio ambiguo o fuera del rango de su moneda", "revisar (no se excluye)",
-              v.loc[~rango_ok, "fila"], "crudo")
+    reg.regla("Precio unitario", "Precio ambiguo o fuera del rango de su moneda", "revisar (no se excluye)",
+              v.loc[~rango_ok, "fila"], "crudo", "verificacion")
     rangos = (v.groupby("zona")["precio_unitario_num"].agg(["min", "max", "count"])
               .reset_index().rename(columns={"count": "filas"}))
 
@@ -372,11 +377,11 @@ def limpiar(f):
     v["moneda_registrada"] = v["moneda_id"].map(monedas)
     esperada = np.where(nac, "CLP", "USD")
     distinta = v["moneda_registrada"].notna() & (v["moneda_registrada"] != esperada)
-    reg.regla(3, "Moneda registrada distinta de la del mercado", "revisar (no se corrige)",
-              v.loc[distinta, "fila"], "crudo")
+    reg.regla("Moneda", "Moneda registrada distinta de la del mercado", "revisar (no se corrige)",
+              v.loc[distinta, "fila"], "crudo", "verificacion")
     v["moneda_imputada"] = v["moneda_registrada"].isna().astype(int)
     v["moneda"] = v["moneda_registrada"].fillna(pd.Series(esperada, index=v.index))
-    reg.regla(3, "Moneda vacía", "imputada por mercado (Chile CLP, resto USD)",
+    reg.regla("Moneda vacía", "La venta no trae moneda", "se asigna por mercado (Chile CLP, resto USD)",
               v.loc[v["moneda_imputada"] == 1, "fila"], "crudo")
     patron_moneda = {}
     for col in ["mercado_id", "vendedor_id", "cliente_id", "mes_num"]:
@@ -403,14 +408,14 @@ def limpiar(f):
                 queda, nota = que_cuadran["fila"].iloc[0], "se conserva la fila que cuadra"
             else:
                 queda = g["fila"].iloc[0]
-                nota = "ninguna fila cuadra: se conserva la primera y la regla 5 recalcula el neto"
+                nota = "ninguna fila cuadra: se conserva la primera y su monto neto se recalcula"
             descarte["conflicto"] += [x for x in g["fila"] if x != queda]
             notas_conflicto.append(f"venta {vid}: {nota}")
-    reg.regla(1, "Duplicado idéntico en crudo", "se elimina la segunda", descarte["crudo"], "crudo")
-    reg.regla(1, "Duplicado idéntico solo tras normalizar formatos", "se elimina la segunda",
-              descarte["normalizado"], "crudo")
-    reg.regla(1, "Duplicado en conflicto (" + "; ".join(notas_conflicto) + ")",
-              "se elimina la otra fila", descarte["conflicto"], "crudo")
+    reg.regla("Duplicados", "Venta repetida, idéntica tal como viene", "se elimina la copia", descarte["crudo"], "crudo", "exclusion")
+    reg.regla("Duplicados", "Venta repetida, idéntica tras unificar formatos", "se elimina la copia",
+              descarte["normalizado"], "crudo", "exclusion")
+    reg.regla("Duplicados", "Venta repetida con montos distintos (" + "; ".join(notas_conflicto) + ")",
+              "se elimina la otra fila", descarte["conflicto"], "crudo", "exclusion")
     descartar = set(sum(descarte.values(), []))
     v = v[~v["fila"].isin(descartar)].copy()
     reg.otra("SQLite ventas", "Filas iguales con distinto venta_id",
@@ -422,23 +427,24 @@ def limpiar(f):
                             v.set_index("venta_id")["mercado_id"], reg)
     v = v.merge(emb, on="venta_id", how="left")
     exp_sin_emb = (v["canal"] != "Nacional") & v["cajas_embarque"].isna()
-    reg.regla(8, "Venta de exportación sin embarque", "sin incoterm", v.loc[exp_sin_emb, "fila"])
-    reg.regla(8, "Venta nacional con embarque", "revisar",
-              v.loc[(v["canal"] == "Nacional") & v["cajas_embarque"].notna(), "fila"])
+    reg.regla("Cruce con embarques", "Venta de exportación sin embarque", "queda sin incoterm", v.loc[exp_sin_emb, "fila"], grupo="verificacion")
+    reg.regla("Cruce con embarques", "Venta nacional con embarque", "revisar",
+              v.loc[(v["canal"] == "Nacional") & v["cajas_embarque"].notna(), "fila"], grupo="verificacion")
     v["cajas"] = v["cajas_original"]
     v["cajas_corregidas"] = 0
     for factor in FACTORES_BOTELLA:
         m = (v["cajas_corregidas"] == 0) & (v["cajas_original"] == factor * v["cajas_embarque"])
         v.loc[m, "cajas"] = v.loc[m, "cajas_embarque"].astype(int)
         v.loc[m, "cajas_corregidas"] = 1
-        reg.regla(4, f"Cajas cargadas en botellas (venta = {factor} × cajas del embarque)",
+        reg.regla("Cajas cargadas como botellas", f"La venta registra {factor} veces las cajas del embarque",
                   f"cajas ÷ {factor}", v.loc[m, "fila"])
-    reg.regla(4, "Merma con cajas positivas en el embarque", "se mantiene el signo de la venta",
-              v.loc[(v["cajas_original"] < 0) & (v["cajas_embarque"] == -v["cajas_original"]), "fila"])
+    reg.regla("Cruce con embarques", "Merma con cajas positivas en el embarque", "se mantiene el signo de la venta",
+              v.loc[(v["cajas_original"] < 0) & (v["cajas_embarque"] == -v["cajas_original"]), "fila"],
+              grupo="verificacion")
     otras_dif = v["cajas_embarque"].notna() & (v["cajas_corregidas"] == 0) & \
         (v["cajas"].abs() != v["cajas_embarque"])
-    reg.regla(4, "Cajas distintas del embarque sin factor 12 o 10", "revisar (no se corrige)",
-              v.loc[otras_dif, "fila"])
+    reg.regla("Cruce con embarques", "Cajas distintas del embarque sin factor 12 o 10", "revisar (no se corrige)",
+              v.loc[otras_dif, "fila"], grupo="verificacion")
 
     # --- costos y litros (regla 9, anexo C) ---
     v["anada"] = v["anada"].astype(int)
@@ -449,11 +455,11 @@ def limpiar(f):
     if v["litros_por_caja"].isna().any():
         raise ValueError("ventas sin producto en el maestro")
     v["litros"] = v["cajas"] * v["litros_por_caja"]
-    reg.regla(9, "Litros = cajas × 9,0 (formato 12x750)", "litros por caja del maestro",
-              v.loc[v["formato"] == "12x750", "fila"])
-    reg.regla(9, "Litros = cajas × 9,0 (formato 6x1500, magnum)", "litros por caja del maestro",
-              v.loc[v["formato"] == "6x1500", "fila"])
-    reg.regla("C", "Costo faltante en el maestro (par ausente o N/A)", "imputado por (tier, añada)",
+    reg.regla("Conversión a litros", "Formato 12x750: litros = cajas × 9,0", "litros por caja del maestro de costos",
+              v.loc[v["formato"] == "12x750", "fila"], grupo="formato")
+    reg.regla("Conversión a litros", "Formato 6x1500 (magnum): litros = cajas × 9,0", "litros por caja del maestro de costos",
+              v.loc[v["formato"] == "6x1500", "fila"], grupo="formato")
+    reg.regla("Costo faltante", "El maestro no trae costo para ese producto y añada", "se imputa el costo de su tier y añada",
               v.loc[v["costo_imputado"] == 1, "fila"])
 
     # --- regla 5: monto neto ---
@@ -465,17 +471,17 @@ def limpiar(f):
     rec = v["monto_recalculado"] == 1
     es_bruto = rec & ((v["monto_registrado"] - v["monto_bruto"]).abs() <= TOLERANCIA_MONTO * v["monto_bruto"].abs()) \
         & (v["descuento_num"] > 0)
-    reg.regla(5, "Monto neto descuadrado: registrado igual al bruto (sin descuento)", "recalculado",
+    reg.regla("Monto neto descuadrado", "El monto registrado es el bruto (no resta el descuento)", "se recalcula como cajas × precio × (1 − descuento)",
               v.loc[es_bruto, "fila"])
-    reg.regla(5, "Monto neto descuadrado: otras diferencias", "recalculado",
+    reg.regla("Monto neto descuadrado", "El monto difiere en más de 0,5 % por otras causas", "se recalcula como cajas × precio × (1 − descuento)",
               v.loc[rec & ~es_bruto, "fila"])
 
     # --- regla 6 y 7 ---
     v["es_merma"] = (v["cajas"] < 0).astype(int)
-    reg.regla(6, "Merma (cajas negativas)", "se incluye; costo con |cajas|", v.loc[v["es_merma"] == 1, "fila"])
-    reg.regla(7, "Factura de 2026", "en la estrella; fuera de la métrica", v.loc[v["anio"] != 2025, "fila"])
-    reg.regla("alcance", "Venta nacional (Chile)", "en la estrella; fuera de la métrica",
-              v.loc[v["canal"] == "Nacional", "fila"])
+    reg.regla("Merma", "Línea con cajas negativas (vino descartado)", "se incluye; el costo se cuenta con las cajas en valor absoluto", v.loc[v["es_merma"] == 1, "fila"])
+    reg.regla("Período", "Factura de 2026", "queda en el modelo; fuera de la métrica", v.loc[v["anio"] != 2025, "fila"], grupo="exclusion")
+    reg.regla("Fuera del alcance: ventas nacionales", "Venta en Chile, facturada en pesos", "queda en el modelo; fuera de la métrica",
+              v.loc[v["canal"] == "Nacional", "fila"], grupo="exclusion")
 
     # --- regla 10: dólar ---
     dolar = f["dolar"]
@@ -485,11 +491,11 @@ def limpiar(f):
     v["tipo_cambio_embarque"], _ = tipo_cambio(v["fecha_embarque"], dolar)
     for col, que, accion in [("regla_tc", "Dólar de la factura", "tipo de cambio asignado"),
                              ("regla_tc_cobranza", "Dólar de la cobranza (factura + 60 días sur / "
-                              "+ 90 norte)", "tipo de cambio de la sensibilidad c")]:
+                              "+ 90 norte)", "tipo de cambio para la sensibilidad de cobranza")]:
         for r_ in ["último día hábil previo", "1 de enero = 2 de enero",
                    "posterior al último dólar publicado: último valor", "sin dólar"]:
-            reg.regla(10, f"{que}: {r_}", accion if r_ != "sin dólar" else "queda sin dólar",
-                      v.loc[v[col] == r_, "fila"])
+            reg.regla("Tipo de cambio", f"{que}: {r_}", accion if r_ != "sin dólar" else "queda sin dólar",
+                      v.loc[v[col] == r_, "fila"], grupo="dolar")
     if v["tipo_cambio"].isna().any():
         raise ValueError("facturas sin dólar")
 
@@ -522,8 +528,36 @@ def limpiar(f):
     }
 
 
+
+
+# ----------------------------------------------------------------------------
+# output/cobertura.md
+# ----------------------------------------------------------------------------
+GRUPOS = {
+    "exclusion": "Detalle de las filas excluidas",
+    "correccion": "Correcciones aplicadas (la fila se conserva con el valor corregido)",
+    "formato": "Formatos leídos (no cambian ningún valor)",
+    "dolar": "Tipo de cambio asignado",
+    "verificacion": "Verificaciones (controles; la mayoría no encontró problemas)",
+}
+CORTES_MONEDA = {"mercado_id": "Mercado", "vendedor_id": "Vendedor", "cliente_id": "Cliente",
+                 "mes_num": "Mes de la factura"}
+
+
+def _miles(x):
+    return f"{x:,.0f}".replace(",", ".")
+
+
+def _pct(a, b, dec=2):
+    return (f"{100 * a / b:.{dec}f} %".replace(".", ",")) if b else "–"
+
+
+def _dec2(x):
+    return f"{x:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+
+
 def escribir_cobertura(res, ruta):
-    """output/cobertura.md: cada regla con filas, % de filas y % de litros."""
+    """output/cobertura.md: qué pasó con cada venta, de lo más importante a lo más técnico."""
     reg, v = res["registro"], res["ventas"]
     litros = res["litros_ref"]
     n_crudo, n_limpio = res["n_crudo"], len(v)
@@ -531,85 +565,116 @@ def escribir_cobertura(res, ruta):
     l_crudo = litros.sum()
     l_limpio = litros[litros.index.isin(v["fila"])].sum()
 
-    def pct(a, b):
-        return f"{100 * a / b:.2f} %".replace(".", ",") if b else "–"
-
-    def miles(x):
-        return f"{x:,.0f}".replace(",", ".")
-
-    lineas = [
-        "# Cobertura y calidad de datos",
-        "",
-        "Generado por `src/limpiar.py` (vía `python run.py`). No editar a mano.",
-        "",
-        f"Base: {miles(n_crudo)} filas de `ventas`. Las reglas de la etapa *crudo* (formatos y "
-        f"duplicados) se miden sobre las {miles(n_crudo)} filas crudas; las demás, sobre las "
-        f"{miles(n_limpio)} que quedan tras deduplicar (las que entran a `fact_venta`). "
-        f"El % de litros usa |cajas corregidas| × litros por caja. La última columna cuenta "
-        f"las filas dentro del universo de la métrica (exportación, factura 2025: "
-        f"{miles(len(universo))} filas).",
-        "",
-        "## Reglas sobre las ventas",
-        "",
-        "| Regla | Hallazgo | Acción | Filas | % filas | % litros | Filas en universo |",
-        "|---|---|---|---:|---:|---:|---:|",
-    ]
-    for r in reg.ventas:
-        base_n, base_l = (n_crudo, l_crudo) if r["etapa"] == "crudo" else (n_limpio, l_limpio)
-        filas = r["filas"]
-        lit = litros[litros.index.isin(filas)].sum()
-        lineas.append(f"| {r['num']} | {r['regla']} | {r['accion']} | {miles(len(filas))} | "
-                      f"{pct(len(filas), base_n)} | {pct(lit, base_l)} | {miles(len(filas & universo))} |")
-    lineas += [
-        "",
-        "## Hallazgos en las otras fuentes",
-        "",
-        "| Fuente | Hallazgo | Cantidad | Acción |",
-        "|---|---|---:|---|",
-    ]
-    for o in reg.otras:
-        lineas.append(f"| {o['fuente']} | {o['hallazgo']} | {miles(o['cantidad'])} {o['unidad']} | {o['accion']} |")
-
-    lineas += ["", "## Verificación de la regla 2: precio unitario por zona", "",
-               "| Zona | Mínimo | Máximo | Filas |", "|---|---:|---:|---:|"]
-    def dec2(x):
-        return f"{x:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
-
-    for _, r in res["rangos_precio"].iterrows():
-        lineas.append(f"| {r['zona']} | {dec2(r['min'])} | {dec2(r['max'])} | {miles(r['filas'])} |")
-    lineas += ["", "Los rangos no se solapan (CLP en Nacional, USD en el resto), así que el canal "
-               "basta para leer el separador."]
-
-    lineas += ["", "## Regla 3: ¿hay patrón en la moneda vacía?", "",
-               "| Corte | % de filas con moneda vacía (mín – máx entre grupos) |", "|---|---|"]
-    for col, (a, b) in res["patron_moneda"].items():
-        lineas.append(f"| {col} | {a:.1f} – {b:.1f} %".replace(".", ",") + " |")
-    lineas += ["", "La tasa es pareja en todos los cortes: no hay un mercado, vendedor, cliente o "
-               "mes que concentre los vacíos."]
-
-    # resumen de exclusiones
-    v_ids = set(v["fila"])
-    f2026 = int((v["anio"] != 2025).sum())
-    nac_total = int((v["canal"] == "Nacional").sum())
-    lineas += [
-        "",
-        "## Registros excluidos de la métrica",
-        "",
-        "| Motivo | Filas | % de las filas crudas | % de litros |",
-        "|---|---:|---:|---:|",
-    ]
-    filas_dup = set(litros.index) - v_ids
+    filas_dup = set(litros.index) - set(v["fila"])
     filas_2026 = set(v.loc[v["anio"] != 2025, "fila"])
     filas_nac = set(v.loc[(v["anio"] == 2025) & (v["canal"] == "Nacional"), "fila"])
-    for nombre, fs in [("Duplicados (regla 1)", filas_dup), ("Facturas de 2026 (regla 7)", filas_2026),
-                       ("**Subtotal calidad**", filas_dup | filas_2026),
-                       ("Ventas nacionales 2025 (alcance)", filas_nac),
-                       ("**Total excluido de la métrica**", filas_dup | filas_2026 | filas_nac)]:
+    calidad = filas_dup | filas_2026
+
+    def en_universo(tema):
+        return len(set().union(*[r["filas"] for r in reg.ventas if r["tema"] == tema]) & universo)
+
+    d = reg.datos
+    lineas = [
+        "# Cobertura y calidad de los datos de ventas",
+        "",
+        "Este archivo responde qué pasó con cada una de las ventas registradas por la viña: cuántas "
+        "se descartaron, cuántas se corrigieron y por qué. Los datos vienen de la tabla `ventas` de "
+        "`origen_vina.sqlite`, cruzada con el maestro de costos (`origen_costos_productos.csv`), los "
+        "embarques (`origen_embarques.json`) y el dólar observado de mindicador.cl. Lo genera "
+        "`src/limpiar.py` al correr `python run.py`; no se edita a mano.",
+        "",
+        "## Resumen",
+        "",
+        f"- De las {_miles(n_crudo)} ventas registradas, solo {_miles(len(calidad))} "
+        f"({_pct(len(calidad), n_crudo)}) se descartaron por problemas de datos: "
+        f"{_miles(len(filas_dup))} duplicados y {_miles(len(filas_2026))} facturas fechadas en 2026, "
+        "fuera del período analizado.",
+        f"- Otras {_miles(len(filas_nac))} ventas ({_pct(len(filas_nac), n_crudo)}) quedan fuera por "
+        "alcance, no por calidad: son ventas nacionales y la pregunta es sobre exportación. El universo "
+        f"de la métrica son {_miles(len(universo))} ventas de exportación facturadas en 2025 "
+        f"({_pct(len(universo), n_crudo)} de las registradas).",
+        "- Ninguna venta se descartó por formato: las fechas venían escritas de 4 maneras y los precios "
+        "y montos con y sin «$» y con distintos separadores, pero todas se pudieron leer.",
+        f"- Dentro del universo, los errores se corrigieron sin descartar filas: "
+        f"{_miles(en_universo('Monto neto descuadrado'))} montos netos recalculados, "
+        f"{_miles(en_universo('Cajas cargadas como botellas'))} ventas cargadas en botellas convertidas "
+        f"a cajas, {_miles(en_universo('Moneda vacía'))} monedas vacías asignadas por mercado y "
+        f"{_miles(en_universo('Costo faltante'))} costos imputados según su tier y añada.",
+        f"- El archivo de embarques solo es confiable para las cajas: en "
+        f"{_miles(d['embarque_mercado_distinto'])} de {_miles(d['lineas_embarque'])} líneas "
+        f"({_pct(d['embarque_mercado_distinto'], d['lineas_embarque'], 0)}) el mercado no coincide con "
+        f"el de la venta, y en {_miles(d['embarque_antes_factura'])} "
+        f"({_pct(d['embarque_antes_factura'], d['lineas_embarque'], 0)}) el embarque es anterior a la "
+        "factura. Por eso no se usan su fecha ni su mercado.",
+        "",
+        "## Cómo leer las tablas",
+        "",
+        "- **Tema**: el tipo de problema o de regla.",
+        "- **Hallazgo**: qué se encontró en los datos.",
+        "- **Qué se hizo**: la acción aplicada. Solo los duplicados se eliminan; el resto de las filas "
+        "se conserva, corregida si hace falta.",
+        f"- **Filas**: cuántas ventas afecta. Las reglas de lectura de formatos y de duplicados se miden "
+        f"sobre las {_miles(n_crudo)} ventas tal como vienen; las demás, sobre las {_miles(n_limpio)} que "
+        "quedan después de quitar los duplicados (las que entran al modelo, tabla `fact_venta`).",
+        "- **% de filas** y **% de litros**: el peso de esas ventas sobre el total, en número de filas y "
+        "en litros (cajas corregidas × 9 litros por caja, en valor absoluto).",
+        f"- **En el universo**: cuántas de esas filas forman parte del universo de la métrica "
+        f"(exportación, factura de 2025; {_miles(len(universo))} ventas).",
+        "- Un valor 0 en una verificación significa que el control no encontró ningún caso.",
+        "",
+        "## 1. Ventas excluidas de la métrica",
+        "",
+        "| Motivo | Ventas | % de las registradas | % de los litros |",
+        "|---|---:|---:|---:|",
+    ]
+    for nombre, fs in [("Duplicados", filas_dup), ("Facturas de 2026 (fuera del período)", filas_2026),
+                       ("**Subtotal: problemas de datos**", calidad),
+                       ("Fuera del alcance: ventas nacionales de 2025", filas_nac),
+                       ("**Total excluido de la métrica**", calidad | filas_nac)]:
         lit = litros[litros.index.isin(fs)].sum()
-        lineas.append(f"| {nombre} | {miles(len(fs))} | {pct(len(fs), n_crudo)} | {pct(lit, l_crudo)} |")
-    lineas += ["", f"Universo de la métrica: {miles(len(universo))} filas "
-               f"({pct(len(universo), n_crudo)} de las crudas). Ninguna fila se excluye por "
-               f"formato: todas las fechas, precios y montos se pudieron leer. "
-               f"En `fact_venta` quedan {miles(n_limpio)} filas (incluye {f2026} de 2026 y "
-               f"{nac_total} nacionales)."]
+        lineas.append(f"| {nombre} | {_miles(len(fs))} | {_pct(len(fs), n_crudo)} | {_pct(lit, l_crudo)} |")
+    lineas += ["", f"Universo de la métrica: **{_miles(len(universo))} ventas** "
+               f"({_pct(len(universo), n_crudo)} de las registradas). Las facturas de 2026 y las ventas "
+               f"nacionales no se borran: quedan en el modelo (`fact_venta`, {_miles(n_limpio)} filas) "
+               "y solo se filtran al calcular la métrica."]
+
+    def tabla(grupo, encabezado):
+        out = ["", f"{encabezado} {GRUPOS[grupo]}", "",
+               "| Tema | Hallazgo | Qué se hizo | Filas | % de filas | % de litros | En el universo |",
+               "|---|---|---|---:|---:|---:|---:|"]
+        for r in [r for r in reg.ventas if r["grupo"] == grupo]:
+            base_n, base_l = (n_crudo, l_crudo) if r["etapa"] == "crudo" else (n_limpio, l_limpio)
+            lit = litros[litros.index.isin(r["filas"])].sum()
+            out.append(f"| {r['tema']} | {r['regla']} | {r['accion']} | {_miles(len(r['filas']))} | "
+                       f"{_pct(len(r['filas']), base_n)} | {_pct(lit, base_l)} | "
+                       f"{_miles(len(r['filas'] & universo))} |")
+        return out
+
+    lineas += tabla("exclusion", "###")
+    lineas += tabla("correccion", "## 2.")
+    lineas += ["", "## 3. Detalle técnico y verificaciones"]
+    lineas += tabla("formato", "### 3.1")
+    lineas += tabla("dolar", "### 3.2")
+    lineas += ["", "El dólar observado se toma del día de la factura. Los fines de semana y feriados "
+               "usan el último día hábil previo, y el 1 de enero usa el 2 de enero, primer día publicado "
+               "del año. La fecha de cobranza (factura + 60 días en el hemisferio sur, + 90 en el norte) "
+               "solo se usa en una sensibilidad."]
+    lineas += tabla("verificacion", "### 3.3")
+    lineas += ["", "### 3.4 Hallazgos en las otras fuentes", "",
+               "| Fuente | Hallazgo | Cantidad | Qué se hizo |", "|---|---|---:|---|"]
+    for o in reg.otras:
+        lineas.append(f"| {o['fuente']} | {o['hallazgo']} | {_miles(o['cantidad'])} {o['unidad']} | {o['accion']} |")
+    lineas += ["", "### 3.5 Precio unitario por zona: ¿se pueden confundir pesos con dólares?", "",
+               "| Zona | Mínimo | Máximo | Filas |", "|---|---:|---:|---:|"]
+    for _, r in res["rangos_precio"].iterrows():
+        lineas.append(f"| {r['zona']} | {_dec2(r['min'])} | {_dec2(r['max'])} | {_miles(r['filas'])} |")
+    lineas += ["", "Los rangos no se solapan: la zona Nacional está en pesos (CLP) y el resto en dólares "
+               "(USD). Por eso basta el canal para saber si el punto de un precio separa miles "
+               "(«38.467» pesos) o decimales («45.06» dólares)."]
+    lineas += ["", "### 3.6 ¿Hay un patrón en las ventas sin moneda?", "",
+               "| Corte | % de ventas sin moneda (mínimo – máximo entre grupos) |", "|---|---|"]
+    for col, (a, b) in res["patron_moneda"].items():
+        lineas.append(f"| {CORTES_MONEDA[col]} | {a:.1f} – {b:.1f} %".replace(".", ",") + " |")
+    lineas += ["", "La tasa es pareja en todos los cortes: ningún mercado, vendedor, cliente ni mes "
+               "concentra las ventas sin moneda, así que asignarla por mercado no introduce sesgo."]
     ruta.write_text("\n".join(lineas) + "\n", encoding="utf-8")

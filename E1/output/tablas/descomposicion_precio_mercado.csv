@@ -1,0 +1,9 @@
+metodo,componente,usd_por_litro,pct_del_cambio
+"Base S1 con término cruzado (principal, sección E)",Mezcla de tiers,0.551478,107.948646
+"Base S1 con término cruzado (principal, sección E)",Mezcla de mercados dentro de cada tier,-0.033064,-6.472143
+"Base S1 con término cruzado (principal, sección E)",Precio dentro de un mismo mercado y tier,-0.005778,-1.131049
+"Base S1 con término cruzado (principal, sección E)",Término cruzado (celda tier × mercado),-0.001765,-0.345454
+Simétrico de punto medio,Mezcla de tiers,0.548874,107.438985
+Simétrico de punto medio,Mezcla de mercados dentro de cada tier,-0.031343,-6.135209
+Simétrico de punto medio,Precio dentro de un mismo mercado y tier,-0.006661,-1.303776
+Simétrico de punto medio,Término cruzado (celda tier × mercado),0.000000,0.000000

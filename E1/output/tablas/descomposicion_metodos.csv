@@ -1,0 +1,5 @@
+metodo,precio_s1,precio_s2,cambio,efecto_mezcla,efecto_precio,efecto_cruzado,mezcla_pct_del_cambio,precio_pct_del_cambio,cruzado_pct_del_cambio,suma_verifica
+"Base S1 con término cruzado (principal, sección E)",4.574104,5.084975,0.510871,0.551478,-0.035400,-0.005207,107.948646,-6.929324,-1.019322,-0.000000
+Simétrico de punto medio,4.574104,5.084975,0.510871,0.548874,-0.038004,0.000000,107.438985,-7.438985,0.000000,-0.000000
+"Secuencial, mezcla primero",4.574104,5.084975,0.510871,0.551478,-0.040607,0.000000,107.948646,-7.948646,0.000000,-0.000000
+"Secuencial, precio primero",4.574104,5.084975,0.510871,0.546271,-0.035400,0.000000,106.929324,-6.929324,0.000000,-0.000000

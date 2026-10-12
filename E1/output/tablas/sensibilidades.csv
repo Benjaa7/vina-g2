@@ -1,0 +1,12 @@
+sensibilidad,definicion,unidad,s1,s2,anual,variacion_s1_s2_pct,mezcla_pct_del_cambio,dif_anual_vs_principal_pct
+a) litros por caja del magnum,principal (9 L),USD/L,4.574104,5.084975,4.827555,11.168758,107.948646,0.000000
+a) litros por caja del magnum,magnum 18 L (2 × 9),USD/L,4.286666,4.645603,4.467026,8.373338,108.182862,-7.468162
+a) litros por caja del magnum,"magnum 4,5 L (9 ÷ 2)",USD/L,4.732780,5.337374,5.030561,12.774599,108.165427,4.205153
+b) líneas negativas (merma),excluidas,USD/L,4.571485,5.084692,4.825557,11.226249,107.967122,-0.041394
+b) líneas negativas (merma),incluidas (principal),USD/L,4.574104,5.084975,4.827555,11.168758,107.948646,0.000000
+c) moneda y fecha de conversión,USD (principal),USD/L,4.574104,5.084975,4.827555,11.168758,107.948646,0.000000
+c) moneda y fecha de conversión,CLP a fecha de factura,CLP/L,4372.252519,4812.128419,4590.481859,10.060624,119.408632,
+c) moneda y fecha de conversión,"CLP a fecha estimada de cobranza (+60 sur, +90 norte)",CLP/L,4356.457224,4630.496193,4492.412259,6.290409,191.727842,-2.136368
+c) moneda y fecha de conversión,CLP a fecha de embarque (solo para S6; regla 8),CLP/L,4317.203129,4784.133465,4548.854599,10.815575,111.457362,-0.906817
+d) precio neto vs precio de lista,"precio de lista (bruto, sin descuento)",USD/L,4.754324,5.316714,5.033335,11.829021,101.671526,4.262597
+d) precio neto vs precio de lista,precio neto (principal),USD/L,4.574104,5.084975,4.827555,11.168758,107.948646,0.000000

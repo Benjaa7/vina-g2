@@ -7,6 +7,6 @@ b) líneas negativas (merma),incluidas (principal),USD/L,4.574104,5.084975,4.827
 c) moneda y fecha de conversión,USD (principal),USD/L,4.574104,5.084975,4.827555,11.168758,107.948646,0.000000
 c) moneda y fecha de conversión,CLP a fecha de factura,CLP/L,4372.252519,4812.128419,4590.481859,10.060624,119.408632,
 c) moneda y fecha de conversión,"CLP a fecha estimada de cobranza (+60 sur, +90 norte)",CLP/L,4356.457224,4630.496193,4492.412259,6.290409,191.727842,-2.136368
-c) moneda y fecha de conversión,CLP a fecha de embarque (solo para S6; regla 8),CLP/L,4317.203129,4784.133465,4548.854599,10.815575,111.457362,-0.906817
+c) moneda y fecha de conversión,CLP a fecha de embarque (solo para el supuesto S6 de la bitácora; fecha de embarque no confiable),CLP/L,4317.203129,4784.133465,4548.854599,10.815575,111.457362,-0.906817
 d) precio neto vs precio de lista,"precio de lista (bruto, sin descuento)",USD/L,4.754324,5.316714,5.033335,11.829021,101.671526,4.262597
 d) precio neto vs precio de lista,precio neto (principal),USD/L,4.574104,5.084975,4.827555,11.168758,107.948646,0.000000

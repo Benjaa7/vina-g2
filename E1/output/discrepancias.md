@@ -20,11 +20,27 @@ La conclusión se mantiene: el alza de 4,574 a 5,085 USD/L (+11,2 %) es de mezcl
 
 | Dónde | Observación |
 |---|---|
-| `seccion_E.tex:9` y figura 1 | El efecto mezcla es 0,5515 USD/L: **redondea a 0,551, no a 0,552**. La figura regenerada muestra +0,551. Los derivados no cambian: 108 %, USD 3,13 M y CLP 2.961 M (el texto dice 2.960, que vale como redondeo) |
+| `seccion_E.tex:9` y figura 1 | El efecto mezcla es 0,551478 USD/L: **redondea a 0,551, no a 0,552**. La figura regenerada muestra +0,551. Los derivados no cambian: 108 %, USD 3,13 M y CLP 2.961 M (el texto dice 2.960, que vale como redondeo). Por qué el texto dice 0,552: ver «Redondeo del efecto mezcla» más abajo |
 | `seccion_E.tex:5` | «108 % a cambio de mezcla» ✔ con el método de E. Con los otros tres métodos de descomposición la mezcla explica entre **106,9 % y 107,9 %**. Sugerencia: «entre 107 % y 108 % según el método» |
 | `seccion_A.tex:20` y `seccion_E.tex:7` | «Precios de lista bajaron entre 0,15 % y 0,19 %» ✔ (−0,15 / −0,16 / −0,19 %). «Descuento medio de 3,82 % a 4,40 %» ✔. Falta decir que ambos son **promedios ponderados por cajas**: el promedio simple da otros valores (descuento 3,78 → 4,39 %) |
 | `seccion_A.tex:35` | USD 77,26 y 77,20 por caja ✔, pero son **precios de lista** ponderados. En precio neto la coincidencia se mantiene (USD 74,05 vs 74,08), así que el argumento se refuerza si se dice |
 | `seccion_F.tex:5` | Mezcla bases distintas: 555, 151 y 1.852 se cuentan sobre el universo de exportación (10.672 filas), pero 698 se cuenta sobre todas las filas crudas. Dentro del universo, las monedas imputadas son **542** |
+
+### Redondeo del efecto mezcla
+
+El efecto mezcla se calcula como Σ (participación del 2.º semestre − participación del 1.er semestre) × precio por litro del 1.er semestre, sumando sobre los tres tiers. Con los valores completos que usa la cadena (`output/tablas/fig2_mezcla_tier.csv`) da **0,551478 USD/L**, que se publica como **0,551**.
+
+Ese valor está a solo 0,00002 del límite de redondeo (0,5515), así que redondear cualquier valor intermedio antes de multiplicar lo mueve de cifra:
+
+| Valores usados en el cálculo | Efecto mezcla | Publicado |
+|---|---:|---:|
+| Proporciones y precios completos (lo que usa la cadena) | 0,5515 | **0,551** |
+| Proporciones redondeadas a 3 decimales (42,6 %, 34,7 %, 22,7 %…) | 0,5527 | 0,553 |
+| Precios redondeados a 2 decimales (2,53 / 4,66 / 8,28 USD/L) | 0,5516 | 0,552 |
+
+El 0,552 de la sección E (línea 9) y de la figura 1 anterior es compatible con haber redondeado algún valor intermedio, por ejemplo los precios por tier a 2 decimales. Como no tenemos el cálculo original, no podemos saber cuál se usó.
+
+**Qué hacer:** escribir 0,551, que es el valor exacto con los datos completos. Las cifras que dependen de él no cambian al redondearlas: 108 % del alza, USD 3,13 millones y CLP ≈ 2.960 millones. Para cualquier cálculo derivado, conviene partir de los valores completos de `fig2_mezcla_tier.csv`, no de las cifras redondeadas que aparecen en el informe.
 
 ## 3. Se pueden quitar los «[por confirmar]»
 

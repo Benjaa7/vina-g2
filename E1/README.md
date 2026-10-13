@@ -73,7 +73,7 @@ python run.py
 |---|---|
 | `cifras.md` | Cada cifra del informe, cómo se calcula y si el valor escrito coincide con los datos (empieza con un resumen). |
 | `cobertura.md` | Qué pasó con cada venta: cuántas se excluyeron, cuántas se corrigieron y por qué. |
-| `tablas/*.csv` | Los datos detrás de cada figura y de cada sensibilidad (descomposición por método, por mercado, mensual). |
+| `tablas/*.csv` | Los datos detrás de cada figura y de cada sensibilidad (descomposición por método, por tier, por mercado, mensual). |
 | `figuras/figura1..4` | Las figuras de la sección E, en PDF (para LaTeX) y PNG. |
 | `tabla_integrada.csv` | Todas las ventas limpias en una sola tabla (13.845 filas); no se versiona, se regenera. |
 | `estrella/*.csv` | El modelo dimensional: `fact_venta` y sus cuatro dimensiones; no se versiona, se regenera. |

@@ -8,14 +8,14 @@ Este archivo lista cada cifra del informe del Grupo 2 (caso Viña Vallehondo, pr
 - El alza se explica por la mezcla, no por los precios: Gran Reserva pasó de 22,7 % a 32,5 % de los litros. El efecto mezcla aporta 0,551 USD/L (108 % del alza) y el efecto precio -0,035 USD/L. Con cualquiera de los cuatro métodos de descomposición, la mezcla explica entre 106,9 % y 107,9 % del alza.
 - Los precios de lista bajaron levemente (entre -0,15 % y -0,19 % según el tier) y el descuento medio subió de 3,82 % a 4,40 %. Comparando el mismo tier en el mismo mercado, el precio por litro cambió apenas -0,006 USD/L.
 - La conclusión no depende de cuántos litros rinda el magnum: con 18 o 4,5 litros por caja el precio anual sería 4,47 o 5,03 USD/L en vez de 4,83, y la mezcla sigue explicando más del 100 % del alza (tabla `tablas/sensibilidades.csv`).
-- De las 79 cifras del informe que se pudieron contrastar con los datos, 65 coinciden. No coinciden: Efecto mezcla (método principal); Supuesto S3: diferencia si se usara el monto registrado, exportación; Supuesto S3: ídem, todos los canales de 2025; Supuesto S6: ingreso en pesos a fecha de embarque vs. a fecha de factura; Supuesto S6: ingreso en pesos a fecha de cobranza vs. a fecha de factura; Supuesto S12: ambiguas que coinciden con la columna mes leídas como mes/día; y 8 de los 10 valores de la figura 4. El detalle de qué corregir está en `discrepancias.md`.
+- De las 148 cifras del informe que se pudieron contrastar con los datos, 134 coinciden. No coinciden: Efecto mezcla (método principal); Supuesto S3: diferencia si se usara el monto registrado, exportación; Supuesto S3: ídem, todos los canales de 2025; Supuesto S6: ingreso en pesos a fecha de embarque vs. a fecha de factura; Supuesto S6: ingreso en pesos a fecha de cobranza vs. a fecha de factura; Supuesto S12: ambiguas que coinciden con la columna mes leídas como mes/día; y 8 de los 10 valores de la figura 4. El detalle de qué corregir está en `discrepancias.md`.
 
 ## Cómo leer las tablas
 
 - **Cifra**: qué se mide.
 - **Valor**: el resultado que entrega la cadena con los datos actuales.
 - **Cómo se calcula**: la definición en una línea.
-- **Dónde aparece en el informe**: archivo y línea del `.tex` en `informe/` (sección A = `seccion_A.tex`, etc.; «Bitácora» = `anexo_bitacora.tex`). «Marcada por confirmar» indica que el informe la tiene pendiente de verificación.
+- **Dónde aparece en el informe**: archivo y línea del `.tex` en `informe/` (sección A = `seccion_A.tex`, etc.; «Bitácora» = `anexo_bitacora.tex`). «Marcada por confirmar» indica que el informe la tiene pendiente de verificación. La sección D todavía no está en el repositorio, así que se cita sin número de línea.
 - **¿Coincide?**: ✔ el valor del informe coincide con el de los datos al redondeo con que está escrito; ✘ no coincide (entre paréntesis, lo que dice el informe); – la cifra no aparece en el informe (es de apoyo, una sensibilidad o un hallazgo nuevo).
 
 Términos: **1.er semestre** = facturas de enero a junio de 2025; **2.º semestre** = julio a diciembre. **Universo** = ventas de exportación facturadas en 2025 (10.672). **Tier** = Varietal, Reserva o Gran Reserva. **Magnum** = formato 6x1500 (6 botellas de 1,5 L). **pp** = puntos porcentuales. **Supuesto Sn** = fila n de la bitácora de supuestos del anexo (no confundir con los semestres). **Ingreso neto** = después de descuento. **Sensibilidad** = la misma cifra calculada con otra definición, para ver si la conclusión cambia.
@@ -158,6 +158,82 @@ Términos: **1.er semestre** = facturas de enero a junio de 2025; **2.º semestr
 | Canadá: Gran Reserva en los litros, año 2025 | 28,3 % | 1.er semestre 23,7 % → 2.º semestre 33,3 % | Figura 4 (versión anterior) | ✘ (el informe dice 27,4 %) |
 | Reino Unido: Gran Reserva en los litros, año 2025 | 27,4 % | 1.er semestre 22,0 % → 2.º semestre 33,3 % | Figura 4 (versión anterior) | ✘ (el informe dice 25,3 %) |
 | Japón: Gran Reserva en los litros, año 2025 | 29,2 % | 1.er semestre 23,0 % → 2.º semestre 35,3 % | Figura 4 (versión anterior) | ✘ (el informe dice 26,2 %) |
+
+## 9. Sección D: métrica y sensibilidad
+
+| Cifra | Valor | Cómo se calcula | Dónde aparece en el informe | ¿Coincide? |
+|---|---:|---|---|---|
+| Líneas de exportación de 2025 en la suma | 10.672 | Universo de la métrica | Sección D | ✔ |
+| P, 1.er semestre | 4,574 USD/L | Σ monto neto USD ÷ Σ litros | Sección D | ✔ |
+| P, 2.º semestre | 5,085 USD/L | Ídem | Sección D | ✔ |
+| Alza de P | 0,511 USD/L | P del 2.º semestre − P del 1.er semestre | Sección D | ✔ |
+| Alza de P, % | 11,2 % | P del 2.º semestre ÷ P del 1.er semestre − 1 | Sección D | ✔ |
+| Varietal: proporción de litros (w), 1.er semestre | 42,6 % | Tabla «Datos de entrada» | Sección D | ✔ |
+| Varietal: proporción de litros (w), 2.º semestre | 33,3 % | Ídem | Sección D | ✔ |
+| Varietal: precio por litro (p), 1.er semestre | 2,528 USD/L | Σ monto neto USD ÷ Σ litros del tier | Sección D | ✔ |
+| Varietal: precio por litro (p), 2.º semestre | 2,501 USD/L | Ídem | Sección D | ✔ |
+| Reserva: proporción de litros (w), 1.er semestre | 34,7 % | Tabla «Datos de entrada» | Sección D | ✔ |
+| Reserva: proporción de litros (w), 2.º semestre | 34,2 % | Ídem | Sección D | ✔ |
+| Reserva: precio por litro (p), 1.er semestre | 4,659 USD/L | Σ monto neto USD ÷ Σ litros del tier | Sección D | ✔ |
+| Reserva: precio por litro (p), 2.º semestre | 4,643 USD/L | Ídem | Sección D | ✔ |
+| Gran Reserva: proporción de litros (w), 1.er semestre | 22,7 % | Tabla «Datos de entrada» | Sección D | ✔ |
+| Gran Reserva: proporción de litros (w), 2.º semestre | 32,5 % | Ídem | Sección D | ✔ |
+| Gran Reserva: precio por litro (p), 1.er semestre | 8,277 USD/L | Σ monto neto USD ÷ Σ litros del tier | Sección D | ✔ |
+| Gran Reserva: precio por litro (p), 2.º semestre | 8,197 USD/L | Ídem | Sección D | ✔ |
+| Tiers cuyo precio por litro bajó entre semestres | 3 | «Los tres precios por tier bajaron» | Sección D | ✔ |
+| Varietal: aporte al efecto mezcla | -0,235 USD/L | (w del 2.º sem. − w del 1.er sem.) × p del 1.er sem.; tabla «Cálculo» | Sección D | ✔ |
+| Varietal: aporte al efecto precio | -0,012 USD/L | w del 1.er sem. × (p del 2.º sem. − p del 1.er sem.) | Sección D | ✔ |
+| Varietal: aporte al término cruzado | 0,003 USD/L | (cambio de w) × (cambio de p) | Sección D | ✔ |
+| Reserva: aporte al efecto mezcla | -0,023 USD/L | (w del 2.º sem. − w del 1.er sem.) × p del 1.er sem.; tabla «Cálculo» | Sección D | ✔ |
+| Reserva: aporte al efecto precio | -0,006 USD/L | w del 1.er sem. × (p del 2.º sem. − p del 1.er sem.) | Sección D | ✔ |
+| Reserva: aporte al término cruzado | 0,000 USD/L | (cambio de w) × (cambio de p) | Sección D | ✔ |
+| Gran Reserva: aporte al efecto mezcla | 0,809 USD/L | (w del 2.º sem. − w del 1.er sem.) × p del 1.er sem.; tabla «Cálculo» | Sección D | ✔ |
+| Gran Reserva: aporte al efecto precio | -0,018 USD/L | w del 1.er sem. × (p del 2.º sem. − p del 1.er sem.) | Sección D | ✔ |
+| Gran Reserva: aporte al término cruzado | -0,008 USD/L | (cambio de w) × (cambio de p) | Sección D | ✔ |
+| Total: aporte al efecto mezcla | 0,551 USD/L | (w del 2.º sem. − w del 1.er sem.) × p del 1.er sem.; tabla «Cálculo» | Sección D | ✔ |
+| Total: aporte al efecto precio | -0,035 USD/L | w del 1.er sem. × (p del 2.º sem. − p del 1.er sem.) | Sección D | ✔ |
+| Total: aporte al término cruzado | -0,005 USD/L | (cambio de w) × (cambio de p) | Sección D | ✔ |
+| Gran Reserva: puntos de proporción ganados | 9,8 pp | «9,8 puntos más» | Sección D | ✔ |
+| Gran Reserva: lo que suma al precio medio | 0,81 USD/L | «suma 0,81 USD/L» | Sección D | ✔ |
+| Varietal: puntos de proporción perdidos | 9,3 pp | «9,3 puntos menos» | Sección D | ✔ |
+| Varietal: lo que resta al precio medio | 0,23 USD/L | «resta 0,23» | Sección D | ✔ |
+| Columna de precio sumando los valores redondeados | -0,036 USD/L | Suma de los tres aportes ya redondeados a 3 decimales («suma −0,036 en vez de −0,035») | Sección D | ✔ |
+| Mezcla, % del alza | 108 % | Tabla «Resultado» | Sección D | ✔ |
+| Precio, % del alza | -7 % | Ídem | Sección D | ✔ |
+| Cruzado, % del alza | -1 % | Ídem («apenas el 1 %») | Sección D | ✔ |
+| Variación del precio de lista Varietal | -0,15 % | Extremo del rango «entre 0,15 % y 0,19 %» | Sección D | ✔ |
+| Variación del precio de lista Gran Reserva | -0,19 % | Ídem | Sección D | ✔ |
+| Descuento medio, 1.er semestre | 3,82 % | Ponderado por cajas | Sección D | ✔ |
+| Descuento medio, 2.º semestre | 4,40 % | Ídem | Sección D | ✔ |
+| Magnum vs Gran Reserva estándar: diferencia de precio de lista por caja | 0,07 USD/caja | «el precio por caja coincide»: 77,26 vs 77,20 | Sección D | – |
+| Magnum vs Gran Reserva estándar: diferencia máxima de costo por caja (misma añada) | 0 CLP/caja | «el costo por caja coincide» | Sección D | ✔ |
+| Magnum 9,0 L (adoptada): P del 1.er semestre | 4,574 USD/L | Análisis completo con esa definición | Sección D | ✔ |
+| Magnum 9,0 L (adoptada): P del 2.º semestre | 5,085 USD/L | Ídem | Sección D | ✔ |
+| Magnum 9,0 L (adoptada): alza del precio | 11,2 % | P₂ ÷ P₁ − 1 | Sección D | ✔ |
+| Magnum 9,0 L (adoptada): mezcla, % del alza | 107,9 % | Descomposición principal con esa definición | Sección D | ✔ |
+| Magnum 18,0 L: P del 1.er semestre | 4,287 USD/L | Análisis completo con esa definición | Sección D | ✔ |
+| Magnum 18,0 L: P del 2.º semestre | 4,646 USD/L | Ídem | Sección D | ✔ |
+| Magnum 18,0 L: alza del precio | 8,4 % | P₂ ÷ P₁ − 1 | Sección D | ✔ |
+| Magnum 18,0 L: mezcla, % del alza | 108,2 % | Descomposición principal con esa definición | Sección D | ✔ |
+| Magnum 4,5 L: P del 1.er semestre | 4,733 USD/L | Análisis completo con esa definición | Sección D | ✔ |
+| Magnum 4,5 L: P del 2.º semestre | 5,337 USD/L | Ídem | Sección D | ✔ |
+| Magnum 4,5 L: alza del precio | 12,8 % | P₂ ÷ P₁ − 1 | Sección D | ✔ |
+| Magnum 4,5 L: mezcla, % del alza | 108,2 % | Descomposición principal con esa definición | Sección D | ✔ |
+| Precio anual con magnum de 9 L | 4,83 USD/L | Definición adoptada | Sección D | ✔ |
+| Precio anual con magnum de 18 L | 4,47 USD/L | Definición alternativa | Sección D | ✔ |
+| Precio anual con magnum de 4,5 L | 5,03 USD/L | Definición alternativa | Sección D | ✔ |
+| Cambio del precio anual con 18 L | -7,5 % | Contra 9 L («un 7,5 % menos») | Sección D | ✔ |
+| Cambio del precio anual con 4,5 L | 4,2 % | Contra 9 L | Sección D | ✔ |
+| Mezcla, % del alza: mínimo entre las tres definiciones | 108 % | «108 % con las tres definiciones» | Sección D | ✔ |
+| Mezcla, % del alza: máximo entre las tres definiciones | 108 % | Ídem | Sección D | ✔ |
+| Método de descomposición: mezcla, % del alza (mínimo) | 106,9 % | Cuatro métodos (base 1.er semestre, simétrico y dos secuenciales) | Sección D | ✔ |
+| Método de descomposición: mezcla, % del alza (máximo) | 107,9 % | Ídem | Sección D | ✔ |
+| Sin las cajas descartadas por merma (cadena de frío, fallas de suministro): mezcla, % del alza | 108,0 % | Se ignoran las líneas de merma | Sección D | ✔ |
+| Con precio de lista: mezcla, % del alza | 101,7 % | Antes de descuento | Sección D | ✔ |
+| Mezcla, % del alza: mínimo entre todas las alternativas en USD | 101,7 % | «en ninguna alternativa la mezcla baja del 100 %» | Sección D | – |
+| Alza del precio en pesos, dólar de la fecha de factura | 10,1 % | CLP/L | Sección D | ✔ |
+| Alza del precio en pesos, dólar de la fecha estimada de cobranza | 6,3 % | Factura + 60 días (sur) o + 90 (norte) | Sección D | ✔ |
+| Alza del precio en dólares | 11,2 % | Para comparar con las dos anteriores | Sección D | ✔ |
 
 ## Notas
 

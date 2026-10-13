@@ -143,6 +143,15 @@ def calcular(integrada, res):
     r["mezcla_pct_min"] = tabla_metodos["mezcla_pct_del_cambio"].min()
     r["mezcla_pct_max"] = tabla_metodos["mezcla_pct_del_cambio"].max()
     r["metodos"] = tabla_metodos
+    # aporte de cada tier a los tres efectos del método principal
+    ds, dp = ct["s2"] - ct["s1"], ct["p2"] - ct["p1"]
+    por_tier = pd.DataFrame({"tier": TIERS, "efecto_mezcla": (ds * ct["p1"]).values,
+                             "efecto_precio": (ct["s1"] * dp).values, "efecto_cruzado": (ds * dp).values})
+    por_tier["total_tier"] = por_tier[["efecto_mezcla", "efecto_precio", "efecto_cruzado"]].sum(axis=1)
+    por_tier = pd.concat([por_tier, pd.DataFrame([{"tier": "Total", **por_tier.drop(columns="tier").sum()}])],
+                         ignore_index=True)
+    r["por_tier"] = por_tier
+    r["tier_sp"] = ct
     fig1 = pd.DataFrame({
         "concepto": ["Precio S1", "Efecto precio", "Efecto mezcla", "Efecto cruzado", "Precio S2"],
         "usd_por_litro": [s1, p["precio"], p["mezcla"], p["cruzado"], s2],
@@ -206,6 +215,9 @@ def calcular(integrada, res):
     r["grstd_lista_caja"] = ponderado(u[gr_std], "precio_lista_usd_caja")
     r["magnum_neto_caja"] = u.loc[mg, "monto_neto_usd"].sum() / u.loc[mg, "cajas"].sum()
     r["grstd_neto_caja"] = u.loc[gr_std, "monto_neto_usd"].sum() / u.loc[gr_std, "cajas"].sum()
+    pa = res["producto_anada"]
+    costo_gr = pa[pa["tier"] == "Gran Reserva"].groupby(["anada", "formato"])["costo_caja_clp"].agg(["min", "max"])
+    r["magnum_costo_dif_max"] = (costo_gr["max"].groupby("anada").max() - costo_gr["min"].groupby("anada").min()).max()
 
     # --- sensibilidades ---
     sens = []
@@ -229,7 +241,7 @@ def calcular(integrada, res):
     fc = fila_sens("c) moneda y fecha de conversión", "CLP a fecha de factura", "CLP/L", u, "monto_neto_clp")
     fb = fila_sens("c) moneda y fecha de conversión", "CLP a fecha estimada de cobranza (+60 sur, +90 norte)",
                    "CLP/L", u, "monto_neto_clp_cobranza", ref=fc["anual"])
-    fe = fila_sens("c) moneda y fecha de conversión", "CLP a fecha de embarque (solo para S6; regla 8)",
+    fe = fila_sens("c) moneda y fecha de conversión", "CLP a fecha de embarque (solo para el supuesto S6 de la bitácora; fecha de embarque no confiable)",
                    "CLP/L", u, "monto_neto_clp_embarque", ref=fc["anual"])
     r["clp_cobranza_vs_factura"] = fb["dif_anual_vs_principal_pct"]
     r["clp_embarque_vs_factura"] = fe["dif_anual_vs_principal_pct"]
@@ -286,6 +298,7 @@ def calcular(integrada, res):
         "fig4_gran_reserva_mercado": fig4,
         "precio_semestre": tabla_sem.reset_index(),
         "descomposicion_metodos": tabla_metodos,
+        "descomposicion_por_tier": por_tier,
         "descomposicion_precio_mercado": tabla_split,
         "sensibilidades": tabla_sens,
         "mensual": mensual,
@@ -501,6 +514,99 @@ def escribir_cifras(r, ruta):
               f"1.er semestre {num(f['gran_reserva_pct_litros_s1'], 1)} % → 2.º semestre "
               f"{num(f['gran_reserva_pct_litros_s2'], 1)} %", "Figura 4 (versión anterior)", FIG4_TEXTO.get(f["pais"]))
 
+    S = "9. Sección D: métrica y sensibilidad"
+    D = "Sección D"
+    sens = r["sens"].set_index("definicion")
+    sp, pt = r["tier_sp"], r["por_tier"].set_index("tier")
+    cifra(S, "Líneas de exportación de 2025 en la suma", r["universo"], 0, "", "Universo de la métrica", D, 10672)
+    cifra(S, "P, 1.er semestre", r["precio_s1"], 3, " USD/L", "Σ monto neto USD ÷ Σ litros", D, 4.574)
+    cifra(S, "P, 2.º semestre", r["precio_s2"], 3, " USD/L", "Ídem", D, 5.085)
+    cifra(S, "Alza de P", r["delta"], 3, " USD/L", "P del 2.º semestre − P del 1.er semestre", D, 0.511)
+    cifra(S, "Alza de P, %", r["var_pct"], 1, " %", "P del 2.º semestre ÷ P del 1.er semestre − 1", D, 11.2)
+    texto_entrada = {"Varietal": (42.6, 33.3, 2.528, 2.501), "Reserva": (34.7, 34.2, 4.659, 4.643),
+                     "Gran Reserva": (22.7, 32.5, 8.277, 8.197)}
+    for tier, (w1, w2, q1, q2) in texto_entrada.items():
+        cifra(S, f"{tier}: proporción de litros (w), 1.er semestre", 100 * sp.loc[tier, "s1"], 1, " %",
+              "Tabla «Datos de entrada»", D, w1)
+        cifra(S, f"{tier}: proporción de litros (w), 2.º semestre", 100 * sp.loc[tier, "s2"], 1, " %", "Ídem", D, w2)
+        cifra(S, f"{tier}: precio por litro (p), 1.er semestre", sp.loc[tier, "p1"], 3, " USD/L",
+              "Σ monto neto USD ÷ Σ litros del tier", D, q1)
+        cifra(S, f"{tier}: precio por litro (p), 2.º semestre", sp.loc[tier, "p2"], 3, " USD/L", "Ídem", D, q2)
+    cifra(S, "Tiers cuyo precio por litro bajó entre semestres", int((sp["p2"] < sp["p1"]).sum()), 0, "",
+          "«Los tres precios por tier bajaron»", D, 3)
+    texto_aportes = {"Varietal": (-0.235, -0.012, 0.003), "Reserva": (-0.023, -0.006, 0.000),
+                     "Gran Reserva": (0.809, -0.018, -0.008), "Total": (0.551, -0.035, -0.005)}
+    for tier, (tm, tp, tc_) in texto_aportes.items():
+        cifra(S, f"{tier}: aporte al efecto mezcla", pt.loc[tier, "efecto_mezcla"], 3, " USD/L",
+              "(w del 2.º sem. − w del 1.er sem.) × p del 1.er sem.; tabla «Cálculo»", D, tm)
+        cifra(S, f"{tier}: aporte al efecto precio", pt.loc[tier, "efecto_precio"], 3, " USD/L",
+              "w del 1.er sem. × (p del 2.º sem. − p del 1.er sem.)", D, tp)
+        cifra(S, f"{tier}: aporte al término cruzado", pt.loc[tier, "efecto_cruzado"], 3, " USD/L",
+              "(cambio de w) × (cambio de p)", D, tc_)
+    cifra(S, "Gran Reserva: puntos de proporción ganados", r["gr_s2"] - r["gr_s1"], 1, " pp", "«9,8 puntos más»", D, 9.8)
+    cifra(S, "Gran Reserva: lo que suma al precio medio", pt.loc["Gran Reserva", "efecto_mezcla"], 2, " USD/L",
+          "«suma 0,81 USD/L»", D, 0.81)
+    cifra(S, "Varietal: puntos de proporción perdidos", r["var_s1"] - r["var_s2"], 1, " pp", "«9,3 puntos menos»", D, 9.3)
+    cifra(S, "Varietal: lo que resta al precio medio", -pt.loc["Varietal", "efecto_mezcla"], 2, " USD/L",
+          "«resta 0,23»", D, 0.23)
+    suma_red = sum(round(pt.loc[t, "efecto_precio"], 3) for t in TIERS)
+    cifra(S, "Columna de precio sumando los valores redondeados", suma_red, 3, " USD/L",
+          "Suma de los tres aportes ya redondeados a 3 decimales («suma −0,036 en vez de −0,035»)", D, -0.036)
+    cifra(S, "Mezcla, % del alza", r["mezcla_pct"], 0, " %", "Tabla «Resultado»", D, 108)
+    cifra(S, "Precio, % del alza", r["precio_pct"], 0, " %", "Ídem", D, -7)
+    cifra(S, "Cruzado, % del alza", 100 * r["ef_cruzado"] / r["delta"], 0, " %", "Ídem («apenas el 1 %»)", D, -1)
+    cifra(S, "Variación del precio de lista Varietal", r["lista_var_var"], 2, " %",
+          "Extremo del rango «entre 0,15 % y 0,19 %»", D, -0.15)
+    cifra(S, "Variación del precio de lista Gran Reserva", r["lista_gr_var"], 2, " %", "Ídem", D, -0.19)
+    cifra(S, "Descuento medio, 1.er semestre", r["desc_s1"], 2, " %", "Ponderado por cajas", D, 3.82)
+    cifra(S, "Descuento medio, 2.º semestre", r["desc_s2"], 2, " %", "Ídem", D, 4.40)
+    cifra(S, "Magnum vs Gran Reserva estándar: diferencia de precio de lista por caja",
+          r["magnum_lista_caja"] - r["grstd_lista_caja"], 2, " USD/caja",
+          f"«el precio por caja coincide»: {num(r['magnum_lista_caja'], 2)} vs {num(r['grstd_lista_caja'], 2)}", D)
+    cifra(S, "Magnum vs Gran Reserva estándar: diferencia máxima de costo por caja (misma añada)",
+          r["magnum_costo_dif_max"], 0, " CLP/caja", "«el costo por caja coincide»", D, 0)
+    texto_def = {"principal (9 L)": (4.574, 5.085, 11.2, 107.9), "magnum 18 L (2 × 9)": (4.287, 4.646, 8.4, 108.2),
+                 "magnum 4,5 L (9 ÷ 2)": (4.733, 5.337, 12.8, 108.2)}
+    for defi, (a1, a2, av, am) in texto_def.items():
+        f = sens.loc[defi]
+        f = f.iloc[0] if isinstance(f, pd.DataFrame) else f
+        nombre = {"principal (9 L)": "9,0 L (adoptada)", "magnum 18 L (2 × 9)": "18,0 L",
+                  "magnum 4,5 L (9 ÷ 2)": "4,5 L"}[defi]
+        cifra(S, f"Magnum {nombre}: P del 1.er semestre", f["s1"], 3, " USD/L", "Análisis completo con esa definición", D, a1)
+        cifra(S, f"Magnum {nombre}: P del 2.º semestre", f["s2"], 3, " USD/L", "Ídem", D, a2)
+        cifra(S, f"Magnum {nombre}: alza del precio", f["variacion_s1_s2_pct"], 1, " %", "P₂ ÷ P₁ − 1", D, av)
+        cifra(S, f"Magnum {nombre}: mezcla, % del alza", f["mezcla_pct_del_cambio"], 1, " %",
+              "Descomposición principal con esa definición", D, am)
+    cifra(S, "Precio anual con magnum de 9 L", r["precio_anual"], 2, " USD/L", "Definición adoptada", D, 4.83)
+    cifra(S, "Precio anual con magnum de 18 L", r["magnum_18.0"], 2, " USD/L", "Definición alternativa", D, 4.47)
+    cifra(S, "Precio anual con magnum de 4,5 L", r["magnum_4.5"], 2, " USD/L", "Definición alternativa", D, 5.03)
+    cifra(S, "Cambio del precio anual con 18 L", 100 * (r["magnum_18.0"] / r["precio_anual"] - 1), 1, " %",
+          "Contra 9 L («un 7,5 % menos»)", D, -7.5)
+    cifra(S, "Cambio del precio anual con 4,5 L", 100 * (r["magnum_4.5"] / r["precio_anual"] - 1), 1, " %",
+          "Contra 9 L", D, 4.2)
+    mezclas_magnum = [sens.loc[d_, "mezcla_pct_del_cambio"] for d_ in texto_def]
+    cifra(S, "Mezcla, % del alza: mínimo entre las tres definiciones", min(mezclas_magnum), 0, " %",
+          "«108 % con las tres definiciones»", D, 108)
+    cifra(S, "Mezcla, % del alza: máximo entre las tres definiciones", max(mezclas_magnum), 0, " %", "Ídem", D, 108)
+    cifra(S, "Método de descomposición: mezcla, % del alza (mínimo)", r["mezcla_pct_min"], 1, " %",
+          "Cuatro métodos (base 1.er semestre, simétrico y dos secuenciales)", D, 106.9)
+    cifra(S, "Método de descomposición: mezcla, % del alza (máximo)", r["mezcla_pct_max"], 1, " %", "Ídem", D, 107.9)
+    cifra(S, "Sin las cajas descartadas por merma (cadena de frío, fallas de suministro): mezcla, % del alza",
+          sens.loc["excluidas", "mezcla_pct_del_cambio"], 1, " %", "Se ignoran las líneas de merma", D, 108.0)
+    cifra(S, "Con precio de lista: mezcla, % del alza", sens.loc["precio de lista (bruto, sin descuento)",
+          "mezcla_pct_del_cambio"], 1, " %", "Antes de descuento", D, 101.7)
+    alternativas = [sens.loc["excluidas", "mezcla_pct_del_cambio"],
+                    sens.loc["precio de lista (bruto, sin descuento)", "mezcla_pct_del_cambio"],
+                    r["mezcla_pct_min"]] + mezclas_magnum
+    cifra(S, "Mezcla, % del alza: mínimo entre todas las alternativas en USD", min(alternativas), 1, " %",
+          "«en ninguna alternativa la mezcla baja del 100 %»", D)
+    cifra(S, "Alza del precio en pesos, dólar de la fecha de factura",
+          sens.loc["CLP a fecha de factura", "variacion_s1_s2_pct"], 1, " %", "CLP/L", D, 10.1)
+    cifra(S, "Alza del precio en pesos, dólar de la fecha estimada de cobranza",
+          sens.loc["CLP a fecha estimada de cobranza (+60 sur, +90 norte)", "variacion_s1_s2_pct"], 1, " %",
+          "Factura + 60 días (sur) o + 90 (norte)", D, 6.3)
+    cifra(S, "Alza del precio en dólares", r["var_pct"], 1, " %", "Para comparar con las dos anteriores", D, 11.2)
+
     # resumen
     contrastadas = [x for x in filas if x[5] != "–"]
     distintas = [x for x in contrastadas if x[5].startswith("✘")]
@@ -549,7 +655,8 @@ def escribir_cifras(r, ruta):
         "- **Cómo se calcula**: la definición en una línea.",
         "- **Dónde aparece en el informe**: archivo y línea del `.tex` en `informe/` (sección A = "
         "`seccion_A.tex`, etc.; «Bitácora» = `anexo_bitacora.tex`). «Marcada por confirmar» indica que el "
-        "informe la tiene pendiente de verificación.",
+        "informe la tiene pendiente de verificación. La sección D todavía no está en el repositorio, así "
+        "que se cita sin número de línea.",
         "- **¿Coincide?**: ✔ el valor del informe coincide con el de los datos al redondeo con que está "
         "escrito; ✘ no coincide (entre paréntesis, lo que dice el informe); – la cifra no aparece en el "
         "informe (es de apoyo, una sensibilidad o un hallazgo nuevo).",

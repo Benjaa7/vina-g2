@@ -1,7 +1,5 @@
 % Sección C · Modelo dimensional. Requiere en el preámbulo: graphicx, booktabs, array.
-% \porconfirmar marca las cifras que deben salir de output/cifras.md (componente B).
-% Cuando estén confirmadas, cambiar la definición por: \renewcommand{\porconfirmar}[1]{#1}
-\providecommand{\porconfirmar}[1]{\textbf{#1}\,[por confirmar]}
+% Todas las cifras están verificadas contra output/cifras.md (componente B).
 
 \section{Modelo dimensional}
 
@@ -24,7 +22,7 @@ Toda cifra del informe se calcula sumando filas de \texttt{fact\_venta}, nunca d
 
 \paragraph{El precio por litro no se guarda.} El hecho guarda cajas, litros y montos, que se suman. El precio medio por litro es un indicador, la suma del monto neto dividida por la suma de los litros, y una razón de sumas no es aditiva: se calcula en cada corte, nunca se promedia. Esta decisión es también la respuesta de negocio: como es una razón, el precio por litro sube cuando crece la proporción de litros de los tiers caros, aunque no se mueva ningún precio de lista.
 
-\paragraph{Producto al nivel de producto y añada.} El costo por caja depende del tier y de la añada, así que \texttt{dim\_producto} tiene una fila por producto y añada (\porconfirmar{96}): el costo unitario es atributo de la dimensión y el costo total es hecho. Ahí vive también \texttt{litros\_por\_caja}, de modo que la definición de caja a litro (sección D) es una sola columna y su sensibilidad se calcula cambiando ese atributo. La cepa, escrita con alias distintos en el archivo de costos, se conforma al catálogo de cepas del ERP.
+\paragraph{Producto al nivel de producto y añada.} El costo por caja depende del tier y de la añada, así que \texttt{dim\_producto} tiene una fila por producto y añada (96): el costo unitario es atributo de la dimensión y el costo total es hecho. Ahí vive también \texttt{litros\_por\_caja}, de modo que la definición de caja a litro (sección~4) es una sola columna y su sensibilidad se calcula cambiando ese atributo. La cepa, escrita con alias distintos en el archivo de costos, se conforma al catálogo de cepas del ERP.
 
 \paragraph{Qué quedó fuera.}
 

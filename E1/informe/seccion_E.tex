@@ -14,21 +14,23 @@
 
 \begin{figure}[!htbp]
   \centering
-  \begin{minipage}{0.43\textwidth}
+  \begin{minipage}[t]{0.47\textwidth}
     \centering
     \includegraphics[width=\linewidth]{figura2_mix_semestral.pdf}
+    \caption{Participación de cada tier en los litros exportados, \%. Fuente: elaboración propia sobre \texttt{fact\_venta}.}
+    \label{fig:mix}
   \end{minipage}\hfill
-  \begin{minipage}{0.43\textwidth}
+  \begin{minipage}[t]{0.47\textwidth}
     \centering
     \includegraphics[width=\linewidth]{figura3_precios_lista.pdf}
+    \caption{Precio de lista por caja, USD. Fuente: elaboración propia sobre \texttt{fact\_venta}.}
+    \label{fig:listas}
   \end{minipage}
-  \caption{Izquierda: participación de cada tier en los litros exportados, \%. Derecha: precio de lista por caja, USD. Fuente: elaboración propia sobre \texttt{fact\_venta}.}
-  \label{fig:mix}
 \end{figure}
 
 \paragraph{Cuánto vale.} El efecto mezcla aportó 0,551 USD por litro en el 2.\textsuperscript{o} semestre: sobre sus 5.674.554 litros son \textbf{USD 3,13 millones}, o \textbf{CLP 2.961 millones} al tipo de cambio efectivo del semestre (946,34 CLP/USD). Es lo que la viña habría dejado de percibir vendiendo con la mezcla del 1.\textsuperscript{er} semestre, a los mismos precios y volumen.
 
-\paragraph{Y nadie lo está dirigiendo.} Esos CLP 3.000 millones no vienen de una decisión comercial: «no se disgrega cepa, reserva, gran reserva ni varietal al tomar la decisión [\ldots] eso no lo tomamos como una forma de decisión en el día a día» (V). Tampoco es un cliente ni una temporada: los diez mercados suben entre 7,5 y 12,3 pp de gran reserva y la participación mensual sube sostenidamente de 19,8\,\% en enero a 35,9\,\% en noviembre (figura~\ref{fig:mercados}, en el anexo).
+\paragraph{Y nadie lo está dirigiendo.} Esos CLP 3.000 millones no vienen de una decisión comercial: «no se disgrega cepa, reserva, gran reserva ni varietal al tomar la decisión [\ldots] eso no lo tomamos como una forma de decisión en el día a día» (V). Tampoco es cosa de un cliente: los diez mercados suben entre 7,5 y 12,3 pp de gran reserva (figura~\ref{fig:mercados}, en el anexo). Y el perfil mensual no es el de una temporada: sube sostenidamente de 19,8\,\% en enero a 35,9\,\% en noviembre, y diciembre baja.
 
 \paragraph{Recomendación.} Tres acciones, en orden de lo que cuesta hacerlas:
 
@@ -38,4 +40,4 @@
 \item \textbf{Cerrar la definición de litros por caja en el maestro de productos.} Es una sola columna y de ella cuelga toda la medición por litro (sección~4). Mientras operaciones sostenga que las cajas no rinden lo mismo y el maestro diga 9,0 para ambos formatos, cualquier cifra por litro queda en discusión; el mismo control evita las 151 líneas cargadas este año en botellas en vez de cajas.
 \end{enumerate}
 
-\paragraph{Lo que no responde.} Con un año no se separa del todo tendencia de estacionalidad, aunque el patrón no es el del hemisferio norte (S8). El margen por mercado queda fuera: faltan costos de despacho, aranceles y la paridad dólar-euro.
+\paragraph{Lo que no responde.} Con un solo año no se puede descartar del todo un componente estacional, aunque el patrón observado no es el de una temporada del hemisferio norte (bitácora, S8). El margen por mercado queda fuera: faltan costos de despacho, aranceles y la paridad dólar-euro.

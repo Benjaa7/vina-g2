@@ -3,7 +3,7 @@
 
 \section{Cobertura de datos}
 
-\paragraph{Qué quedó fuera.} De las 13.983 ventas registradas en el ERP se excluyeron \textbf{221 por problemas de datos, un 1,6\,\%}: 138 duplicados y 83 facturas con fecha de 2026, fuera del período. Por alcance, no por calidad, quedan fuera las 3.090 ventas nacionales de 2025. El universo de la métrica son \textbf{10.672 líneas}.
+\paragraph{Qué quedó fuera.} De las 13.983 ventas registradas en el ERP quedan fuera \textbf{221, un 1,6\,\%}: 138 duplicados, que sí son un problema de calidad, y 83 facturas de 2026, que quedan en \texttt{fact\_venta} pero fuera del período analizado porque la empresa cierra el año por factura. Por alcance salen además las 3.090 ventas nacionales de 2025. El universo de la métrica son \textbf{10.672 líneas}.
 
 \paragraph{Qué se corrigió sin excluir.} Dentro de ese universo la cadena rectificó 555 montos netos discordantes, 151 líneas cargadas en botellas en vez de cajas, 542 monedas vacías imputadas por mercado y 1.852 costos ausentes imputados por tier y añada (sobre el total registrado, las monedas vacías son 698). Ninguna corrección descarta la transacción: la conserva con la regla aplicada registrada en \texttt{output/cobertura.md}.
 

@@ -45,8 +45,10 @@ Tiempo y mercado se repiten en los tres procesos: si cada área los definiera di
 
 Las fuentes son una foto sin historia de cambios, así que todas las dimensiones se cargan con tipo 1 (sobrescribir). Si en adelante el maestro de productos cambiara el costo o los litros por caja de un producto, habría que versionar ese atributo (tipo 2), para que las ventas pasadas conserven el valor vigente al momento de la venta.
 
-\subsection*{C.4 Diccionario de datos}
+\subsection*{C.4 Montos en dos monedas}
+
+La exportación se factura en dólares y el mercado nacional en pesos. Para no sumar pesos con dólares, cada monto se guarda en dos columnas, convertidas con el dólar observado de la fecha de factura. La moneda no va como texto en el hecho: la determina el mercado, así que es atributo de \texttt{dim\_mercado}.
+
+\subsection*{C.5 Diccionario de datos}
 
 \input{anexo_C_diccionario.tex}
-
-\paragraph{Montos en dos monedas.} La exportación se factura en dólares y el mercado nacional en pesos. Para no sumar pesos con dólares, cada monto se guarda en dos columnas, convertidas con el dólar observado de la fecha de factura. La moneda no va como texto en el hecho: la determina el mercado, así que es atributo de \texttt{dim\_mercado}.

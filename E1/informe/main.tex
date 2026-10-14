@@ -1,0 +1,71 @@
+% Documento principal del informe de la Entrega 1.
+% Máximo 6 páginas de cuerpo; la portada y los anexos no cuentan.
+% Cada sección vive en su propio .tex para que cada responsable edite la suya.
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[spanish]{babel}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage[hidelinks]{hyperref}
+\usepackage[font=small,skip=3pt]{caption}
+% El cuerpo tiene más de veinte \paragraph; el espacio por defecto antes de cada uno
+% (3,25ex) suma casi un cuarto de página. Se aprieta a 1,6ex, que sigue separando bien.
+\usepackage{titlesec}
+\titlespacing*{\paragraph}{0pt}{1.6ex plus .4ex minus .2ex}{1em}
+\setlength{\textfloatsep}{8pt plus 2pt minus 2pt}
+\setlength{\intextsep}{8pt plus 2pt minus 2pt}
+% figuras/ en Overleaf; ../output/figuras/ al compilar en local desde informe/
+\graphicspath{{figuras/}{../output/figuras/}}
+
+% Todas las cifras del informe quedaron verificadas contra output/cifras.md (componente B),
+% así que la marca de «por confirmar» está apagada.
+\newcommand{\porconfirmar}[1]{#1}
+
+\begin{document}
+
+\begin{titlepage}
+  \centering
+  {\large IIC3752 Tecnologías para Inteligencia de Negocios\par}
+  {\large Escuela de Ingeniería UC - 2026-2\par}
+  \vspace{4cm}
+  {\LARGE\bfseries Entrega 1\par}
+  \vspace{0.5cm}
+  {\Large Viña Vallehondo - Grupo 2\par}
+  \vspace{3cm}
+  {\large Integrantes\par}
+  \vspace{0.3cm}
+  [Diego Da Silva]\par
+  [Nicolás Massa]\par
+  [Nombre completo 3]\par
+  [Benjamín Suazo]\par
+  \vfill
+  Repositorio: \url{https://github.com/Benjaa7/vina-g2}\par
+  \vspace{0.5cm}
+  14 de octubre de 2026
+\end{titlepage}
+
+\input{seccion_A}
+\input{seccion_B}
+\input{seccion_C}
+\input{seccion_D}
+\input{seccion_E}
+\input{seccion_F}
+
+\clearpage
+\appendix
+\input{anexo_B}
+\clearpage
+\input{anexo_D}
+\clearpage
+\input{anexo_C}
+\clearpage
+\input{anexo_bitacora}
+\clearpage
+\input{anexo_IA}
+
+\end{document}

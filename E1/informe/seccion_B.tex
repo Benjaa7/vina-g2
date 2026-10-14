@@ -1,0 +1,24 @@
+% Sección B · Cadena ejecutable. Extensión sugerida: 0,5 página en el informe; el resto es el repositorio.
+
+
+\section{Cadena ejecutable}
+
+La cadena lee las cuatro fuentes del caso, las limpia, construye el modelo de la sección~3 y calcula todas las cifras y figuras del informe. Se ejecuta con un solo comando desde la carpeta \texttt{E1} del repositorio:
+
+\begin{center}
+\texttt{pip install -r requirements.txt} \quad y luego \quad \texttt{python run.py}
+\end{center}
+
+\noindent Corre en Python 3.11 o superior y demora entre 7 y 35 segundos, según lo que tarde la API. El README del repositorio detalla la instalación y las cifras que deben aparecer al final.
+
+\paragraph{Flujo.} Cuatro etapas, cada una en su módulo: \emph{extraer} (lee las fuentes) $\rightarrow$ \emph{limpiar} (aplica las reglas de calidad y cuenta las filas que toca cada una) $\rightarrow$ \emph{integrar} (construye \texttt{fact\_venta} y sus dimensiones) $\rightarrow$ \emph{métrica} (indicador, descomposición, sensibilidades y figuras). Ninguna cifra del informe está escrita a mano: todas salen de \texttt{output/cifras.md}, que la cadena regenera en cada ejecución.
+
+\paragraph{Qué aporta cada fuente:}La pregunta se apoya sobre todo en ventas y costos, pero las cuatro fuentes entran al proceso con un rol concreto:
+
+\texttt{origen\_vina.sqlite} aporta las líneas de venta (13.845 tras deduplicar) y las tablas de clientes, mercados, zonas, cepas y monedas que forman las dimensiones. \texttt{origen\_costos\_productos.csv} aporta los litros y el costo por caja de cada producto y añada, y sostiene la conversión de caja a litro. \texttt{origen\_embarques.json} corrige las líneas cargadas en botellas en vez de cajas e identifica el incoterm, pero no se usa para fecha ni mercado: el 64\,\% de sus líneas declara un mercado distinto al de la venta. La API \texttt{mindicador.cl} aporta el dólar observado diario de 2025 y 2026, para expresar los montos en pesos.
+
+\paragraph{Reglas de limpieza.} La cadena no corrige las fuentes: las lee como vienen y aplica reglas explícitas, cada una registrada con su conteo en \texttt{output/cobertura.md} y detallada en el anexo~B.
+
+\paragraph{Reproducibilidad.} Se probó en dos ambientes limpios (Python 3.12 y 3.14), clonando el repositorio y siguiendo solo el README: las salidas son idénticas byte a byte. Si la API no responde, usa la copia guardada de la serie y lo avisa, con el mismo resultado; en la última prueba la API estaba caída y corrió igual. Si una regla encuentra un caso que no sabe tratar, la ejecución se detiene con un error en vez de seguir en silencio.
+
+\paragraph{Qué se espera ver al final.} Al terminar, \texttt{run.py} imprime seis cifras de verificación: las 13.845 filas de \texttt{fact\_venta}, las 10.672 del universo de la métrica, la participación de gran reserva (22,7\,\% $\rightarrow$ 32,5\,\%), el precio medio por litro (4,574 $\rightarrow$ 5,085 USD/L), el precio medio anual (4,83 USD/L) y el peso del magnum (8,07\,\% del volumen y 13,76\,\% del ingreso). Las mismas, con todas las demás del informe, quedan en \texttt{output/cifras.md} con su definición y el lugar donde aparecen.

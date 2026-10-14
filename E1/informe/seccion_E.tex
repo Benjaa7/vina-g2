@@ -1,58 +1,41 @@
+% Sección E · Evidencia, caso de negocio y recomendación.
+% Figuras reducidas y texto compactado para respetar el límite de 6 páginas.
+
 \section{Evidencia, caso de negocio y recomendación}
 
-\subsection{Caso de negocio: cuantificación del efecto de la mezcla}
+\paragraph{Qué muestran los datos.} Entre el 1.\textsuperscript{er} y el 2.\textsuperscript{o} semestre de 2025 el precio medio de exportación subió de 4,574 a 5,085 USD por litro (+11,2\,\%), el volumen cayó 1,5\,\% y el ingreso neto creció 9,5\,\%, de USD 26,36 a 28,85 millones: la viña facturó más vendiendo menos vino. La descomposición de la sección~4 atribuye el 108\,\% del alza a la mezcla y $-$7\,\% al precio, y entre los cuatro métodos usuales la mezcla explica entre 107 y 108\,\%. Cambió porque gran reserva pasó de 22,7\,\% a 32,5\,\% de los litros (+9,8 pp) y varietal retrocedió de 42,6\,\% a 33,3\,\% ($-$9,3 pp), mientras las listas bajaban entre 0,15\,\% y 0,19\,\% y el descuento medio subía de 3,82\,\% a 4,40\,\%, ambos ponderados por cajas.
 
-El análisis de descomposición sobre la facturación de exportación de 2025 demuestra que el incremento del 11,2\,\% en el precio medio por litro (de 4,574 a 5,085 USD/L entre el primer y segundo semestre) responde en un \textbf{108\,\% a un cambio de mezcla de productos (premiumización)} y no a incrementos de precios de lista contractuales. Durante dicho período, el volumen físico total exportado se contrajo un 1,5\,\% (de 5.763.411 a 5.674.554 litros), mientras que la facturación neta creció un 9,5\,\% (de USD 26,36 millones a USD 28,85 millones).
-
-Este crecimiento proviene exclusivamente de la expansión en la participación de \textit{Gran Reserva}, que pasó de representar el 22,7\,\% al 32,5\,\% del total de litros exportados (+9,8 puntos porcentuales), desplazando al segmento \textit{Varietal} que retrocedió del 42,6\,\% al 33,3\,\% ($-9,3$ pp). En contraste, los precios de lista contractuales por caja registraron leves contracciones de entre $-0,15\,\%$ y $-0,19\,\%$, a la vez que el descuento promedio concedido aumentó de 3,82\,\% a 4,40\,\%.
-
-Traducido a impacto financiero directo, el efecto puro de la premiumización aportó $+0,552$ USD por cada litro exportado en el segundo semestre. Al valorar los 5.674.554 litros del período bajo la estructura de mezcla del primer semestre, la empresa habría dejado de percibir \textbf{USD 3,13 millones}. Al tipo de cambio efectivo del segundo semestre (946,34 CLP/USD), este hallazgo equivale a una brecha comercial de \textbf{CLP 2.960 millones} (aproximadamente CLP 3.000 millones semestrales).
-
-Este incremento en facturación ocurrió sin una directriz comercial explícita. Como reconoció la propia gerencia en la reunión de levantamiento: \textit{``no está disgregada esa información al momento de la toma de decisión [...] en verdad eso no lo tomamos como una forma de decisión en el día a día''} (verbalizado). La viña está capturando cerca de CLP 3.000 millones adicionales por semestre por efecto de una mezcla que hoy nadie dirige ni planifica.
-
-\subsection{Visualizaciones de soporte}
-
-\begin{figure}[htbp]
-    \centering
-    \includegraphics[width=0.88\linewidth]{../output/figuras/figura1_cascada_precio.pdf}
-    \caption{Descomposición del alza del precio medio de exportación (USD por litro).}
-    \label{fig:cascada}
+\begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=0.44\linewidth]{figura1_cascada_precio.pdf}
+  \caption{Descomposición del alza del precio medio de exportación, USD por litro. Fuente: elaboración propia sobre \texttt{fact\_venta} (10.672 líneas de exportación de 2025).}
+  \label{fig:cascada}
 \end{figure}
 
-\begin{figure}[htbp]
+\begin{figure}[!htbp]
+  \centering
+  \begin{minipage}{0.43\textwidth}
     \centering
-    \begin{minipage}{0.48\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../output/figuras/figura2_mix_semestral.pdf}
-        \caption{Participación por \textit{tier} en litros exportados (\%).}
-        \label{fig:mix_semestral}
-    \end{minipage}\hfill
-    \begin{minipage}{0.48\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{../output/figuras/figura3_precios_lista.pdf}
-        \caption{Precios contractuales por caja (USD/caja).}
-        \label{fig:precios_lista}
-    \end{minipage}
+    \includegraphics[width=\linewidth]{figura2_mix_semestral.pdf}
+  \end{minipage}\hfill
+  \begin{minipage}{0.43\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{figura3_precios_lista.pdf}
+  \end{minipage}
+  \caption{Izquierda: participación de cada tier en los litros exportados, \%. Derecha: precio de lista por caja, USD. Fuente: elaboración propia sobre \texttt{fact\_venta}.}
+  \label{fig:mix}
 \end{figure}
 
-\begin{figure}[htbp]
-    \centering
-    \includegraphics[width=0.85\linewidth]{../output/figuras/figura4_gran_reserva_mercados.pdf}
-    \caption{Participación de Gran Reserva sobre litros totales por mercado (\%).}
-    \label{fig:mercados}
-\end{figure}
+\paragraph{Cuánto vale.} El efecto mezcla aportó 0,551 USD por litro en el 2.\textsuperscript{o} semestre: sobre sus 5.674.554 litros son \textbf{USD 3,13 millones}, o \textbf{CLP 2.961 millones} al tipo de cambio efectivo del semestre (946,34 CLP/USD). Es lo que la viña habría dejado de percibir vendiendo con la mezcla del 1.\textsuperscript{er} semestre, a los mismos precios y volumen.
 
-\subsection{Recomendaciones estratégicas a la gerencia}
+\paragraph{Y nadie lo está dirigiendo.} Esos CLP 3.000 millones no vienen de una decisión comercial: «no se disgrega cepa, reserva, gran reserva ni varietal al tomar la decisión [\ldots] eso no lo tomamos como una forma de decisión en el día a día» (V). Tampoco es un cliente ni una temporada: los diez mercados suben entre 7,5 y 12,3 pp de gran reserva y la participación mensual sube sostenidamente de 19,8\,\% en enero a 35,9\,\% en noviembre (figura~\ref{fig:mercados}, en el anexo).
 
-Para transformar este hallazgo fortuito en una ventaja competitiva sistemática y sostenible, se proponen tres acciones concretas en lenguaje de negocio:
+\paragraph{Recomendación.} Tres acciones, en orden de lo que cuesta hacerlas:
 
 \begin{enumerate}
-    \item \textbf{Gestión y planificación explícita de la mezcla por \textit{tier}:}
-    Desacoplar las metas comerciales y de planificación agrícola de la métrica agregada de ``litros brutos''. La empresa debe establecer presupuestos diferenciados por categoría y cepa, priorizando la asignación de uva y capacidad de bodega hacia \textit{Gran Reserva} y \textit{Reserva}. Operaciones debe alinear sus programas de embotellado con la demanda comercial por segmento, superando la limitación histórica donde \textit{``para finanzas, litros son litros totales''} mientras la rentabilidad depende críticamente del tipo de vino comercializado.
-
-    \item \textbf{Incorporación del precio a mezcla constante en el reporte mensual:}
-    El área comercial consolida y limpia manualmente datos del ERP una vez al mes mediante planillas Excel. Se recomienda incorporar de forma inmediata en dicha planilla dos indicadores estándar: la participación porcentual de litros de \textit{Gran Reserva} y el precio medio por litro a mezcla constante (descomposición precio-volumen-mezcla). Esto permite detectar de inmediato si las variaciones en facturación corresponden a efectividad comercial, política de descuentos o cambios de mix, eliminando la opacidad de los ajustes en planillas.
-
-    \item \textbf{Formalización del gobierno de datos en formatos y unidades:}
-    Cerrar contractualmente la definición maestra de 9,0 litros por caja en los sistemas ERP para los formatos estándar (12$\times$750\,ml) y magnum (6$\times$1500\,ml), estableciendo controles de validación en la digitación para erradicar el ingreso erróneo de botellas individuales como si fuesen bultos o cajas. Este saneamiento operativo previene distorsiones en los costos de despacho y asegura que la planificación de inventarios refleje la disponibilidad física real en bodega.
+\item \textbf{Agregar dos indicadores a la planilla mensual que ya existe.} Comercial descarga el ERP a Excel una vez al mes (V); basta sumar la participación de litros de gran reserva y el precio por litro a mezcla constante. Con eso se distingue mes a mes si la facturación se movió por precio, por descuento o por mezcla, que hoy no se puede separar.
+\item \textbf{Fijar la meta en mezcla, no solo en litros.} Finanzas y comercial miran litros totales y operaciones litros por cepa (V), y nadie reconcilia ambas. Una meta explícita de participación por tier alinea la asignación de uva y de bodega con lo que paga el mercado.
+\item \textbf{Cerrar la definición de litros por caja en el maestro de productos.} Es una sola columna y de ella cuelga toda la medición por litro (sección~4). Mientras operaciones sostenga que las cajas no rinden lo mismo y el maestro diga 9,0 para ambos formatos, cualquier cifra por litro queda en discusión; el mismo control evita las 151 líneas cargadas este año en botellas en vez de cajas.
 \end{enumerate}
+
+\paragraph{Lo que no responde.} Con un año no se separa del todo tendencia de estacionalidad, aunque el patrón no es el del hemisferio norte (S8). El margen por mercado queda fuera: faltan costos de despacho, aranceles y la paridad dólar-euro.

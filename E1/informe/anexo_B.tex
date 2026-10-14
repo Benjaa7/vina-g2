@@ -1,0 +1,8 @@
+% Anexo B · Reglas de limpieza de la cadena. Sale del cuerpo por el límite de 6 páginas.
+
+\section*{Anexo B. Reglas de limpieza de la cadena}
+\addcontentsline{toc}{section}{Anexo B. Reglas de limpieza de la cadena}
+
+La cadena no corrige las fuentes: las lee como vienen y aplica reglas explícitas, cada una registrada con su conteo en \texttt{output/cobertura.md}. Las principales: fechas leídas en sus cuatro formatos, 138 duplicados eliminados tras normalizar, precio unitario interpretado según el canal, moneda vacía imputada por mercado, cajas cargadas en botellas divididas por 12 o 10, monto neto recalculado cuando difiere más de 0,5\,\% de cajas $\times$ precio $\times$ (1 $-$ descuento), cepas normalizadas al catálogo del ERP y costos faltantes imputados por tier y añada. Las líneas de merma se conservan; las 83 facturas de 2026 quedan en \texttt{fact\_venta} pero fuera del universo, porque la empresa cierra el año por factura.
+
+Cada regla deja registrado en \texttt{output/cobertura.md} cuántas filas tocó, de modo que la cobertura de la sección~6 se reconstruye desde la ejecución y no a mano.

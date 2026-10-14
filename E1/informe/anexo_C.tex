@@ -48,3 +48,5 @@ Las fuentes son una foto sin historia de cambios, así que todas las dimensiones
 \subsection*{C.4 Diccionario de datos}
 
 \input{anexo_C_diccionario.tex}
+
+\paragraph{Montos en dos monedas.} La exportación se factura en dólares y el mercado nacional en pesos. Para no sumar pesos con dólares, cada monto se guarda en dos columnas, convertidas con el dólar observado de la fecha de factura. La moneda no va como texto en el hecho: la determina el mercado, así que es atributo de \texttt{dim\_mercado}.

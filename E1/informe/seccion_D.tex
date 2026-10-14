@@ -1,0 +1,54 @@
+% Sección D · Métrica y sensibilidad.
+% El desarrollo (datos de entrada, cálculo tier por tier, métodos alternativos y
+% las otras tres decisiones) está en el anexo D, para respetar el límite de 6 páginas.
+
+\section{Métrica y sensibilidad}
+
+\paragraph{Qué medimos.} La métrica es el precio medio por litro de exportación de cada semestre de 2025:
+\[
+P = \frac{\sum_i M_i}{\sum_i L_i}, \qquad L_i = C_i \times k_i,
+\]
+donde, para cada línea de venta $i$, $M_i$ es el monto neto en USD (después de descuento), $L_i$ son los litros vendidos, $C_i$ son las cajas y $k_i$ son los litros por caja de su producto. La suma recorre las líneas de \texttt{fact\_venta} del canal exportación con fecha de factura en el semestre (10.672 en el año), incluidas las de merma, con signo negativo. Unidad: USD por litro. Es una razón de sumas, no un promedio de los precios de cada línea.
+
+Entre el 1.\textsuperscript{er} y el 2.\textsuperscript{o} semestre, $P$ subió de 4,574 a 5,085 USD/L: +0,511 USD/L, un 11,2\,\%.
+
+\paragraph{Por qué no basta con mirar $P$.} Un precio medio puede subir por dos razones distintas: porque cada vino se vende más caro (\emph{efecto precio}) o porque, con los mismos precios, se vende una mayor proporción del vino caro (\emph{efecto mezcla}). Para separarlas aplicamos la descomposición estándar de variación precio-mezcla (Kitagawa, 1955; Horngren, Datar y Rajan, \emph{Cost Accounting}). Para cada tier $t$, con $w_t$ su proporción de los litros y $p_t$ su precio por litro, el cambio de $P$ se reparte en tres términos que suman exactamente el alza: mezcla $\sum_t (w_{t,2}-w_{t,1})\,p_{t,1}$, precio $\sum_t w_{t,1}\,(p_{t,2}-p_{t,1})$ y cruzado $\sum_t (w_{t,2}-w_{t,1})(p_{t,2}-p_{t,1})$. El cálculo tier por tier está en el anexo~D. El criterio lo fijamos antes de mirar los resultados: el alza es de mezcla si ese efecto explica más de la mitad del cambio bajo todos los métodos y todas las definiciones alternativas. No usamos pruebas de significancia porque los datos no son una muestra sino todas las ventas del año: la incertidumbre no viene del azar sino de nuestras definiciones, y eso es lo que miden las sensibilidades.
+
+\paragraph{Resultado.}
+
+\begin{center}
+\small
+\begin{tabular}{l r r}
+\hline
+\textbf{Efecto} & \textbf{USD/L} & \textbf{\% del alza} \\
+\hline
+Mezcla & +0,551 & +108\,\% \\
+Precio & $-$0,035 & $-$7\,\% \\
+Cruzado & $-$0,005 & $-$1\,\% \\
+\hline
+\textbf{Cambio total} & \textbf{+0,511} & \textbf{100\,\%} \\
+\hline
+\end{tabular}
+\end{center}
+
+\noindent Vender 9,8 puntos más de gran reserva, el tier más caro, suma 0,81 USD/L al precio medio; vender 9,3 puntos menos de varietal resta 0,23. El efecto precio es negativo en los tres tiers: ninguno subió su precio por litro, porque los precios de lista bajaron entre 0,15\,\% y 0,19\,\% y el descuento medio subió de 3,82\,\% a 4,40\,\% (ambos ponderados por cajas). El término cruzado es apenas el 1\,\% del alza, así que la repartición no es ambigua. Según el criterio fijado, \textbf{el alza es de mezcla}.
+
+\paragraph{La decisión de definición: cuántos litros tiene una caja.} El denominador son los litros, $L_i = C_i \times k_i$, así que el resultado depende de $k_i$. Aquí había una contradicción que tuvimos que cerrar. La contraparte afirmó que «no todas las cajas tienen el mismo número de litros» (V), pero el maestro de costos declara 9,0 litros para los dos formatos que vende la viña, la caja estándar de 12 botellas de 750\,ml y la magnum de 6 botellas de 1,5\,L (M). Además el precio y el costo por caja del magnum coinciden con los del gran reserva estándar (M), algo que solo tiene sentido si ambas cajas rinden lo mismo (I). Adoptamos $k_i = 9{,}0$ para todas las cajas y probamos la alternativa en sus dos extremos razonables: que la magnum rinda el doble (18\,L, si trajera 12 botellas de 1,5\,L) o la mitad (4,5\,L, si trajera 6 de 750\,ml). Para cada una repetimos el análisis completo; el ingreso no cambia, solo los litros a los que se atribuye.
+
+\begin{center}
+\small
+\begin{tabular}{l r r r r}
+\hline
+& \multicolumn{2}{c}{\textbf{Precio medio, USD/L}} & & \\
+\textbf{Definición ($k_i$ del magnum)} & \textbf{1.\textsuperscript{er} sem.} & \textbf{2.\textsuperscript{o} sem.} & \textbf{Alza} & \textbf{Mezcla, \% del alza} \\
+\hline
+Adoptada: 9,0 L & 4,574 & 5,085 & +11,2\,\% & 107,9\,\% \\
+Alternativa: 18,0 L & 4,287 & 4,646 & +8,4\,\% & 108,2\,\% \\
+Alternativa: 4,5 L & 4,733 & 5,337 & +12,8\,\% & 108,2\,\% \\
+\hline
+\end{tabular}
+\end{center}
+
+\paragraph{Qué cambia con la alternativa.} Cambian los \emph{niveles}: el precio anual iría de 4,83 a 4,47 USD/L con 18 litros ($-$7,5\,\%) o a 5,03 con 4,5 (+4,2\,\%), y el tamaño del alza se mueve entre 8,4\,\% y 12,8\,\%. Lo que no cambia es la parte del alza que explica la mezcla: 108\,\% con las tres definiciones, porque todo el magnum es gran reserva y cambiar sus litros hace que ese tier pese más o menos, pero sigue siendo el caro que ganó participación (I). \textbf{La definición cambia cuánto vale el precio por litro, pero no por qué subió}: la decisión que la contraparte no cerró no altera la respuesta.
+
+\paragraph{Las demás decisiones tampoco la alteran.} Probamos el método de descomposición (cuatro variantes: 106,9 a 107,9\,\%), las líneas de merma (excluirlas: 108,0\,\%) y el precio usado (de lista: 101,7\,\%). En ninguna la mezcla baja del 100\,\% del alza, así que el criterio se cumple con holgura; el detalle está en el anexo~D. Medimos en dólares porque los contratos se firman en esa moneda (V) y así el resultado queda aislado del tipo de cambio; el detalle de la medición en pesos está en el anexo~D.

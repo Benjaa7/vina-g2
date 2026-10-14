@@ -1,0 +1,65 @@
+% Anexo D · Desarrollo de la métrica. Sale del cuerpo por el límite de 6 páginas.
+
+\section*{Anexo D. Métrica: datos de entrada, cálculo y sensibilidades}
+\addcontentsline{toc}{section}{Anexo D. Métrica: datos de entrada, cálculo y sensibilidades}
+
+\paragraph{Datos de entrada.} El precio por litro de cada tier, $p_t$, se calcula igual que $P$, pero solo con las ventas de ese tier: la suma de sus $M_i$ dividida por la suma de sus $L_i$. La proporción $w_t$ es la de los litros, no la de las cajas ni la del ingreso.
+
+\begin{center}
+\small
+\begin{tabular}{l r r r r}
+\hline
+& \multicolumn{2}{c}{\textbf{Proporción de litros} ($w_t$)} & \multicolumn{2}{c}{\textbf{Precio, USD/L} ($p_t$)} \\
+\textbf{Tier} & 1.\textsuperscript{er} sem. & 2.\textsuperscript{o} sem. & 1.\textsuperscript{er} sem. & 2.\textsuperscript{o} sem. \\
+\hline
+Varietal     & 42,6\,\% & 33,3\,\% & 2,528 & 2,501 \\
+Reserva      & 34,7\,\% & 34,2\,\% & 4,659 & 4,643 \\
+Gran reserva & 22,7\,\% & 32,5\,\% & 8,277 & 8,197 \\
+\hline
+\textbf{Total ($P$)} & 100\,\% & 100\,\% & 4,574 & 5,085 \\
+\hline
+\end{tabular}
+\end{center}
+
+\noindent Los tres precios por tier bajaron entre semestres, mientras el precio medio subió. Esa sola observación ya descarta el efecto precio como explicación.
+
+\paragraph{Cálculo.} Aplicando las tres fórmulas tier por tier (en USD/L):
+
+\begin{center}
+\small
+\begin{tabular}{l r r r}
+\hline
+& \textbf{Mezcla} & \textbf{Precio} & \textbf{Cruzado} \\
+\textbf{Tier} & $(w_{t,2} - w_{t,1})\, p_{t,1}$ & $w_{t,1}\,(p_{t,2} - p_{t,1})$ & $(w_{t,2} - w_{t,1})(p_{t,2} - p_{t,1})$ \\
+\hline
+Varietal     & $-$0,235 & $-$0,012 & +0,003 \\
+Reserva      & $-$0,023 & $-$0,006 & +0,000 \\
+Gran reserva & +0,809   & $-$0,018 & $-$0,008 \\
+\hline
+\textbf{Total} & \textbf{+0,551} & \textbf{$-$0,035} & \textbf{$-$0,005} \\
+\hline
+\end{tabular}
+\end{center}
+
+\noindent Los valores de la tabla están redondeados y el cálculo usa los valores completos (\texttt{output/tablas/fig2\_mezcla\_tier.csv}); por eso la columna de precio suma $-$0,036 en vez de $-$0,035. El efecto mezcla exacto es 0,5515 USD/L, que se publica como 0,551: está a 0,00002 del límite de redondeo, de modo que redondear cualquier valor intermedio antes de multiplicar lo mueve de cifra. Las cantidades derivadas no cambian por eso: 108\,\% del alza, USD 3,13 millones y CLP 2.961 millones.
+
+\paragraph{El efecto precio casi no es precio.} Separando el efecto precio por celda tier $\times$ mercado, solo $-$0,006 USD/L corresponde a cambio de precio dentro de un mismo mercado y tier; $-$0,033 viene de vender más en mercados de menor precio (mezcla de mercados) y $-$0,002 es término cruzado. Las listas prácticamente no se movieron (\texttt{output/tablas/descomposicion\_precio\_mercado.csv}).
+
+\paragraph{Las otras tres decisiones.} Además de los litros por caja, tomamos tres decisiones al construir la métrica. Para cada una repetimos el análisis completo con la opción que no elegimos:
+
+\begin{center}
+\small
+\begin{tabular}{p{2.6cm} p{4.3cm} p{4.3cm} r}
+\hline
+\textbf{Decisión} & \textbf{Lo que usamos} & \textbf{Alternativa probada} & \textbf{Mezcla, \% del alza} \\
+\hline
+Método de descomposición & Base en el 1.\textsuperscript{er} semestre, con el término cruzado aparte (107,9\,\%) & Los otros tres métodos usuales: simétrico, que reparte el cruzado por mitades, y dos secuenciales, que se lo asignan entero a la mezcla o al precio & 106,9 a 107,9\,\% \\[2pt]
+Líneas de merma & Incluidas: las cajas descartadas por merma restan litros e ingreso (107,9\,\%) & Excluidas: se ignoran esas líneas & 108,0\,\% \\[2pt]
+Precio usado & Neto: lo que el cliente pagó, después de descuento (107,9\,\%) & De lista: antes de descuento & 101,7\,\% \\
+\hline
+\end{tabular}
+\end{center}
+
+\noindent Con el precio de lista la mezcla explica algo menos (101,7\,\%) porque desaparece el aumento del descuento, que restaba al efecto precio; aun así sigue sobre el 100\,\%. El detalle de las cinco sensibilidades está en \texttt{output/tablas/sensibilidades.csv}.
+
+\paragraph{Medición en pesos.} Los contratos se firman en dólares (V), y medir en esa moneda aísla el precio y la mezcla del tipo de cambio. En pesos el alza es menor: 10,1\,\% convirtiendo con el dólar observado de la fecha de factura y 6,3\,\% con el de la fecha estimada de cobranza (factura más 60 días para el hemisferio sur y 90 para el norte, según la contraparte), contra 11,2\,\% en dólares. Esa diferencia es efecto del tipo de cambio, que no es ni precio ni mezcla, de modo que la descomposición en pesos no es comparable con la de dólares.

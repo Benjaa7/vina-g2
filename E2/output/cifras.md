@@ -1,6 +1,6 @@
 # Cifras del informe (E2)
 
-Generado por el paso 07 del job, corrida `dev-1113-c`. Todas salen de `oro.mv_vallehondo` y las vistas del oro.
+Generado por el paso 07 del job, corrida `968992018936015`. Todas salen de `oro.mv_vallehondo` y las vistas del oro.
 
 ## Métrica
 
@@ -27,6 +27,10 @@ Generado por el paso 07 del job, corrida `dev-1113-c`. Todas salen de `oro.mv_va
 | Margen bruto por litro, primer semestre (CLP · cobranza estimada) | 2.036 | CLP/L | (ingreso neto − costo de producto) ÷ litros |
 | Margen bruto por litro, segundo semestre (CLP · cobranza estimada) | 2.106 | CLP/L | Ídem |
 | Alza del margen bruto por litro (CLP · cobranza estimada) | 3,4 | % | S2 ÷ S1 − 1 |
+| Tipo de cambio implícito, primer semestre (CLP · fecha de factura) | 955,9 | CLP/USD | ingreso neto en CLP con esa fecha ÷ ingreso neto en USD (promedio ponderado por monto) |
+| Tipo de cambio implícito, primer semestre (CLP · cobranza estimada) | 952,4 | CLP/USD | ingreso neto en CLP con esa fecha ÷ ingreso neto en USD (promedio ponderado por monto) |
+| Tipo de cambio implícito, segundo semestre (CLP · fecha de factura) | 946,3 | CLP/USD | ingreso neto en CLP con esa fecha ÷ ingreso neto en USD (promedio ponderado por monto) |
+| Tipo de cambio implícito, segundo semestre (CLP · cobranza estimada) | 910,6 | CLP/USD | ingreso neto en CLP con esa fecha ÷ ingreso neto en USD (promedio ponderado por monto) |
 
 ## Robustez
 

@@ -1,0 +1,16 @@
+run_id,capa,prueba,severidad,resultado,filas_fallan,fuente,protege,accion,detalle
+968992018936015,bronce,"JSON de embarques: estructura, campos requeridos y cajas numéricas",bloquea,pasa,0,origen_embarques.json,fuente,ninguna,3064 embarques y 10747 líneas
+968992018936015,bronce,SQLite: están las 7 tablas del ERP con sus columnas,bloquea,pasa,0,origen_vina.sqlite,fuente,ninguna,7 tablas completas
+968992018936015,oro,Conciliación plata → oro: no se pierden líneas ni litros,bloquea,pasa,0,modelo,métrica,ninguna,"plata 13845 líneas y 15,345,639 L; oro 13845 líneas y 15,345,639 L"
+968992018936015,oro,"Fechas de factura dentro del período (2025 en la métrica; 2026 queda fuera por filtro)",bloquea,pasa,0,modelo,métrica,ninguna,facturas entre 20250101 y 20260627
+968992018936015,oro,Litros distintos de cero en todas las líneas,bloquea,pasa,0,modelo,métrica,ninguna,
+968992018936015,oro,fact_venta: clave única,bloquea,pasa,0,modelo,métrica,ninguna,13845 líneas
+968992018936015,oro,fact_venta: sin huérfanos en las cuatro dimensiones,bloquea,pasa,0,modelo,métrica,ninguna,"tiempo 0, producto 0, cliente 0, mercado 0"
+968992018936015,plata,"CSV de costos: columnas esperadas y 9,0 L por caja en ambos formatos",bloquea,pasa,0,origen_costos_productos.csv,"fuente y definición (9,0 L por caja)",ninguna,"96 pares producto-añada; 2 formatos; columnas faltantes: ninguna"
+968992018936015,plata,"Dólar: valor para cada fecha de factura y de cobranza, entre 600 y 1.200 CLP/USD",bloquea,pasa,0,API mindicador.cl o respaldo,fuente,ninguna,"2025: API mindicador.cl respondió en 10.1 s; 2026: API no respondió (TimeoutError: The read operation timed out) → respaldo dolar_2026.json"
+968992018936015,plata,SQLite: venta_id único después de quitar duplicados,bloquea,pasa,0,origen_vina.sqlite,fuente y métrica,ninguna,"13845 filas, 13845 venta_id distintos"
+968992018936015,oro,Acuerdo de servicio: al menos 80 % de los litros con costo real (no imputado),avisa,pasa,0,modelo,acuerdo de servicio (completitud),ninguna,cobertura 82.8%
+968992018936015,oro,Acuerdo de servicio: al menos 98 % de las ventas registradas llega a fact_venta,avisa,pasa,138,modelo,acuerdo de servicio (completitud),ninguna,13845 de 13983 (99.0%)
+968992018936015,oro,"Cifras de control de la E1 (4,574 y 5,085 USD/L; 10.672 líneas)",avisa,pasa,0,modelo,métrica,ninguna,"S1 4.574 USD/L, S2 5.085 USD/L, 10672 líneas"
+968992018936015,oro,Idempotencia: mismas entradas dejan las mismas líneas y montos que la corrida anterior,avisa,pasa,0,modelo,operación,ninguna,"corrida anterior 13845 líneas y USD 73,435,428.61; esta 13845 y USD 73,435,428.61"
+968992018936015,plata,Precio de lista (15–120 USD por caja) y descuento (0–30 %) dentro de rango,avisa,pasa,0,origen_vina.sqlite,métrica,ninguna,"descuentos fuera de rango 0; precios fuera de rango 0"

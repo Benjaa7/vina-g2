@@ -1,0 +1,61 @@
+// Arquitectura de la E2 por capas (de arriba abajo). Genera arquitectura.pdf con generar_figuras.py.
+digraph arquitectura {
+  rankdir=TB; newrank=true; nodesep=0.22; ranksep=0.30;
+  graph [fontname="Helvetica", fontsize=10, color="#1f3a5f", labeljust=l, penwidth=0.8];
+  node  [fontname="Helvetica", fontsize=9, shape=box, style="rounded,filled", fillcolor=white, color="#1f3a5f", penwidth=0.8, margin="0.10,0.05"];
+  edge  [fontname="Helvetica", fontsize=8, color="#555555", arrowsize=0.6, fontcolor="#1f3a5f"];
+
+  subgraph cluster_fuentes {
+    label="Fuentes: versionadas en el repositorio, salvo la API"; style="rounded,dashed";
+    sqlite [label="origen_vina.sqlite\nERP, 7 tablas"];
+    csv    [label="costos_productos.csv\ncosto y litros por caja"];
+    json   [label="embarques.json"];
+    resp   [label="respaldo del dólar\ncon fecha de descarga"];
+    api    [label="API mindicador.cl\ndólar observado", style="rounded,dashed"];
+  }
+  subgraph cluster_bronce {
+    label="Bronce: tal como llega (00 preparar, 01 bronce, 02 dólar)"; style=rounded;
+    llegada  [label="volumen de llegada\narchivo + huella md5"];
+    b_tablas [label="11 tablas Delta sin transformar\n+ corrida, fecha de carga y archivo"];
+    b_dolar  [label="dolar_observado\nfuente: API o respaldo"];
+  }
+  subgraph cluster_plata {
+    label="Plata: reglas de limpieza de la E1 (03)"; style=rounded;
+    p_ventas [label="ventas limpias, cada corrección\nmarcada en su fila"];
+    p_resto  [label="producto y añada · mercados\ndólar diario · regla de costo"];
+  }
+  subgraph cluster_oro {
+    label="Oro: se publica solo si pasan las pruebas"; style=rounded;
+    borrador [label="oro_borrador (04)\nfact_venta + 4 dimensiones\nagg_escenarios"];
+    pruebas  [label="05 · 15 pruebas\n10 bloquean · 5 avisan", shape=diamond, style=filled, fillcolor="#eef2f7", margin="0.01,0.01"];
+    oro      [label="oro publicado (06)\nfact_venta + 4 dimensiones\nagg_escenarios"];
+    mv       [label="oro.mv_vallehondo\nmetric view: definición única\n+ vistas", fillcolor="#eef2f7", penwidth=1.4];
+  }
+  subgraph cluster_consumo {
+    label="Consumo"; style=rounded;
+    tablero [label="tablero AI/BI publicado\nsolo filtra, no recalcula", penwidth=1.4];
+    cifras  [label="cifras del informe (07)\nops.cifras_informe, cifras.md"];
+  }
+  subgraph cluster_ops {
+    label="Ops: evidencia"; style=rounded;
+    ops [label="run_log · dq_resultados\nfuente_dolar · archivos_llegada\nreglas_limpieza"];
+  }
+  detiene [label="si falla una bloqueante, el job\nse detiene y el oro publicado\n(y el tablero) no cambian", shape=note, fontsize=8, color="#999999"];
+
+  {rank=same; sqlite; csv; json; resp; api}
+  {rank=same; llegada; b_tablas; b_dolar}
+  {rank=same; p_ventas; p_resto}
+  {rank=same; borrador; pruebas; oro; mv}
+  {rank=same; tablero; cifras; ops}
+
+  sqlite -> llegada; csv -> llegada; json -> llegada; resp -> llegada;
+  llegada -> b_tablas [label=" ELT"];
+  api -> b_dolar [label=" si no responde:\n respaldo", style=dashed];
+  resp -> b_dolar [style=dashed];
+  b_tablas -> p_ventas; b_tablas -> p_resto; b_dolar -> p_resto;
+  p_ventas -> borrador; p_resto -> borrador;
+  borrador -> pruebas; pruebas -> oro [label="pasan"]; oro -> mv;
+  pruebas -> detiene [style=dashed, arrowhead=none];
+  mv -> tablero; mv -> cifras;
+  pruebas -> ops [style=dotted];
+}

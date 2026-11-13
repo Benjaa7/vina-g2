@@ -5,7 +5,7 @@
 # MAGIC
 # MAGIC Crea (o actualiza) el job `vallehondo_e2` con los ocho pasos de la cadena, lo ejecuta, espera a que termine
 # MAGIC e imprime el resultado de las pruebas de calidad y las cifras del informe; al final publica el tablero y deja
-# MAGIC su enlace. Tarda unos 10 minutos con cómputo serverless.
+# MAGIC su enlace. Tarda unos 6 minutos con cómputo serverless.
 # MAGIC
 # MAGIC | Paso | Qué hace | Capa |
 # MAGIC |---|---|---|
@@ -83,8 +83,8 @@ display(spark.sql(f"SELECT * FROM {CATALOGO}.oro.v_estado_corrida"))
 # MAGIC %md
 # MAGIC ### Tablero
 # MAGIC El tablero está versionado en el repositorio: `tablero/vallehondo.lvdash.json`, generado por
-# MAGIC `tablero/generar_tablero.py`. Al clonar la carpeta Git, Databricks lo reconoce como tablero; esta celda le asigna
-# MAGIC el SQL warehouse, lo publica con las credenciales de quien corre el notebook e imprime el enlace.
+# MAGIC `tablero/generar_tablero.py`. Esta celda lo copia a la carpeta `vallehondo_e2` de quien corre el notebook (así la
+# MAGIC copia del repositorio no se modifica), le asigna el SQL warehouse y el catálogo, lo publica e imprime el enlace.
 
 # COMMAND ----------
 
@@ -97,15 +97,27 @@ WAREHOUSE = next((a.id for a in almacenes if "RUNNING" in str(a.state)), almacen
 
 estado = w.api_client.do("GET", "/api/2.0/workspace/get-status", query={"path": RUTA_TABLERO})
 assert estado.get("object_type") == "DASHBOARD", f"{RUTA_TABLERO} no se reconoció como tablero: {estado}"
-TABLERO_ID = estado.get("resource_id") or str(estado["object_id"])
-cuerpo = {"warehouse_id": WAREHOUSE}
-if CATALOGO != "vallehondo":   # los datasets apuntan al catálogo por defecto; si se usó otro, se corrige aquí
-    actual = w.api_client.do("GET", f"/api/2.0/lakeview/dashboards/{TABLERO_ID}")
-    cuerpo["serialized_dashboard"] = re.sub(r'"catalog"\s*:\s*"vallehondo"', f'"catalog": "{CATALOGO}"',
-                                            actual["serialized_dashboard"])
-tablero = w.api_client.do("PATCH", f"/api/2.0/lakeview/dashboards/{TABLERO_ID}", body=cuerpo)
+fuente = w.api_client.do("GET", f"/api/2.0/lakeview/dashboards/{estado.get('resource_id') or estado['object_id']}")
+serializado = re.sub(r'"catalog"\s*:\s*"[^"]*"', f'"catalog": "{CATALOGO}"', fuente["serialized_dashboard"])
+
+NOMBRE_TABLERO = "Vallehondo · Precio por litro de exportación"
+CARPETA = f"/Users/{w.current_user.me().user_name}/vallehondo_e2"
+w.workspace.mkdirs(CARPETA)
+try:
+    previo = w.api_client.do("GET", "/api/2.0/workspace/get-status",
+                             query={"path": f"{CARPETA}/{NOMBRE_TABLERO}.lvdash.json"})
+except Exception:
+    previo = None
+if previo:
+    TABLERO_ID = previo.get("resource_id") or str(previo["object_id"])
+    w.api_client.do("PATCH", f"/api/2.0/lakeview/dashboards/{TABLERO_ID}",
+                    body={"serialized_dashboard": serializado, "warehouse_id": WAREHOUSE})
+else:
+    TABLERO_ID = w.api_client.do("POST", "/api/2.0/lakeview/dashboards",
+                                 body={"display_name": NOMBRE_TABLERO, "parent_path": CARPETA,
+                                       "serialized_dashboard": serializado, "warehouse_id": WAREHOUSE})["dashboard_id"]
 w.api_client.do("POST", f"/api/2.0/lakeview/dashboards/{TABLERO_ID}/published",
                 body={"embed_credentials": True, "warehouse_id": WAREHOUSE})
-URL_TABLERO = f"{w.config.host.rstrip('/')}/dashboardsv3/{tablero.get('dashboard_id', TABLERO_ID)}/published"
+URL_TABLERO = f"{w.config.host.rstrip('/')}/dashboardsv3/{TABLERO_ID}/published"
 print(URL_TABLERO)
 displayHTML(f'<p style="font-size:16px"><a href="{URL_TABLERO}" target="_blank">Abrir el tablero publicado</a></p>')

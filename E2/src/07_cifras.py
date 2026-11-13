@@ -50,6 +50,17 @@ for mon in ["CLP · fecha de factura", "CLP · cobranza estimada"]:
     cifra("Fecha del dólar", f"Margen bruto por litro, segundo semestre ({mon})", s2, "CLP/L", "Ídem")
     cifra("Fecha del dólar", f"Alza del margen bruto por litro ({mon})", 100 * (s2 / s1 - 1), "%", "S2 ÷ S1 − 1")
 
+# Tipo de cambio implícito de cada semestre: ingreso en pesos con esa fecha del dólar ÷ ingreso en dólares.
+# Explica por qué el alza en pesos depende de la fecha; no se usa para convertir (cada línea usa el dólar de su día).
+ing = spark.sql(f"""SELECT moneda_fecha, semestre, MEASURE(ingreso) AS ingreso
+                    FROM {O}.mv_vallehondo WHERE {PRINCIPAL} GROUP BY moneda_fecha, semestre""").toPandas()
+for sem in [1, 2]:
+    usd = ing[(ing.moneda_fecha == "USD") & (ing.semestre == sem)].ingreso.iloc[0]
+    for mon in ["CLP · fecha de factura", "CLP · cobranza estimada"]:
+        clp = ing[(ing.moneda_fecha == mon) & (ing.semestre == sem)].ingreso.iloc[0]
+        cifra("Fecha del dólar", f"Tipo de cambio implícito, {'primer' if sem == 1 else 'segundo'} semestre ({mon})",
+              clp / usd, "CLP/USD", "ingreso neto en CLP con esa fecha ÷ ingreso neto en USD (promedio ponderado por monto)")
+
 for corr in ["Sin montos recalculados", "Sin cajas corregidas", "Sin monedas imputadas", "Sin ninguna corrección"]:
     r = fila(corr=corr)
     cifra("Robustez", f"Alza del precio por litro, {corr.lower()}", 100 * r.alza_pct, "%", "escenario sin esa corrección")
@@ -78,7 +89,7 @@ cifra("Cobertura", "Líneas en el universo de la métrica", c.n, "líneas", "exp
 
 df = pd.DataFrame(cifras)
 comun.escribir(spark, df, f"{CAT}.ops.cifras_informe")
-num = lambda x, u: (f"{x:,.3f}" if u in ("USD/L",) else f"{x:,.1f}" if u in ("%",) else f"{x:,.0f}").replace(",", "X").replace(".", ",").replace("X", ".")
+num = lambda x, u: (f"{x:,.3f}" if u in ("USD/L",) else f"{x:,.1f}" if u in ("%", "CLP/USD") else f"{x:,.0f}").replace(",", "X").replace(".", ",").replace("X", ".")
 lineas = ["# Cifras del informe (E2)", "",
           f"Generado por el paso 07 del job, corrida `{RUN_ID}`. Todas salen de `oro.mv_vallehondo` y las vistas del oro.", ""]
 for sec, g in df.groupby("seccion", sort=False):

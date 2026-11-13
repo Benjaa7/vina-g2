@@ -1,0 +1,79 @@
+% Sección B · Arquitectura y operación de la cadena (25 %). Responsable: Benja. Extensión: 2,5 páginas.
+% Requiere en el preámbulo: graphicx, booktabs, array. Las cifras salen de E2/output/cifras.md y de ops.dq_resultados.
+
+\section{Arquitectura y operación de la cadena}
+
+La cadena de la E1 corría en un computador. En la E2 corre en Databricks Free Edition como un job de ocho pasos sobre cómputo serverless, con las tablas en Unity Catalog, pruebas de calidad antes de publicar y un tablero que lee el resultado (figura~\ref{fig:arquitectura}). Nadie del equipo tiene que estar para que corra.
+
+\paragraph{Cómo se corre de cero.} En un workspace de Free Edition, \emph{Workspace $\rightarrow$ Create $\rightarrow$ Git folder} con la URL del repositorio, y luego \emph{Run all} en \texttt{E2/correr\_e2}. Ese notebook crea el job \texttt{vallehondo\_e2}, lo ejecuta, muestra las pruebas y las cifras y publica el tablero. No se instala nada ni se configuran credenciales: las fuentes van en el repositorio y el código se lee desde la carpeta Git. Demora unos 6 minutos. Lo probamos en un catálogo vacío del workspace del equipo, donde reprodujo byte a byte el registro de limpieza de la E1, y [COMPLETAR (Integrante 1): en otro workspace, siguiendo solo el README]; las cifras fueron las mismas de la E1 y las 15 pruebas pasaron. El README dice también cómo hacerlo con la CLI (\texttt{databricks bundle deploy}).
+
+\begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=\textwidth]{arquitectura.pdf}
+  \caption{Arquitectura por capas. Los números son los pasos del job. Fuente: elaboración propia.}
+  \label{fig:arquitectura}
+\end{figure}
+
+\paragraph{Qué hace cada capa.} \textbf{Bronce} guarda las cuatro fuentes tal como llegan, como tablas Delta, con la corrida, la fecha de carga y el archivo de origen; antes deja cada archivo en un volumen con su huella (md5). \textbf{Plata} aplica las reglas de limpieza de la E1, que ya estaban probadas y reproducían las cifras: reescribirlas solo agregaba riesgo. Cada corrección queda marcada en su fila, y eso permite apagarla. \textbf{Oro} tiene el modelo estrella de la sección~C, la tabla de escenarios y la definición única de la métrica; se construye primero en un esquema borrador y pasa a \texttt{oro} solo si las pruebas lo permiten. \textbf{Ops} guarda la evidencia: una fila por paso y corrida (\texttt{run\_log}), el resultado de cada prueba (\texttt{dq\_resultados}) y de dónde salió el dólar. El \textbf{tablero} solo filtra; no recalcula nada.
+
+\paragraph{Tres decisiones.}
+\begin{itemize}\setlength\itemsep{1pt}
+\item \textbf{ELT y no ETL.} Las fuentes entran crudas a bronce y se transforman dentro de Databricks. Si mañana cambia una regla (por ejemplo, la equivalencia de litros por caja) se reprocesa desde bronce sin volver a extraer, y el linaje queda en una sola plataforma. El costo es depender de la cuota diaria de cómputo de Free Edition.
+\item \textbf{Carga completa en cada corrida.} Todas las tablas se reemplazan, nunca se agregan: con 13.845 líneas de venta la corrida completa dura minutos, y agregar sobre lo anterior duplicaría ventas si un paso se reintenta. Solo \texttt{run\_log} y \texttt{dq\_resultados} acumulan historia. Una prueba compara cada corrida con el oro publicado: las mismas entradas deben dejar las mismas líneas y montos.
+\item \textbf{Si la API del dólar falla, respaldo con fecha; si no hay respaldo, no se publica.} Free Edition restringe la salida a internet, y mindicador.cl no respondió desde Databricks en ninguna corrida (tiempo agotado en 2025, conexión cortada en 2026). La cadena usa entonces el respaldo versionado en el repositorio, descargado el 2 de octubre (2025) y el 12 de octubre de 2026 (2026). La falla queda registrada en \texttt{ops.fuente\_dolar}, y el pie del tablero muestra la fuente y la fecha. Si ni la API ni el respaldo cubren una fecha de factura o de cobranza, la prueba del dólar bloquea y no se publica.
+\end{itemize}
+
+\paragraph{Pruebas de calidad.} Quince pruebas corren después de construir el oro borrador y antes de publicarlo. Las diez \emph{bloqueantes} detienen el job: si una falla, el oro publicado y el tablero quedan como estaban en la última corrida buena. Las cinco que \emph{avisan} se registran y se informan. Cada prueba deja una fila con la corrida, la fuente que protege, cuántas filas fallaron y qué acción se tomó. En la última corrida pasaron las 15 (tabla~\ref{tab:pruebas}).
+
+\begin{table}[!htbp]
+\centering\footnotesize
+\caption{Pruebas de calidad y resultado de la última corrida. Fuente: \texttt{ops.dq\_resultados}.}
+\label{tab:pruebas}
+\begin{tabular}{@{}l p{9.6cm} l l@{}}
+\toprule
+Capa & Prueba & Si falla & Resultado \\
+\midrule
+Bronce & SQLite: están las 7 tablas del ERP con sus columnas & bloquea & pasa \\
+Bronce & JSON de embarques: estructura, campos requeridos y cajas numéricas & bloquea & pasa \\
+Plata & \texttt{venta\_id} único después de quitar duplicados & bloquea & pasa \\
+Plata & CSV de costos: columnas esperadas y 9,0 L por caja en ambos formatos & bloquea & pasa \\
+Plata & Dólar para cada fecha de factura y de cobranza, entre 600 y 1.200 CLP/USD & bloquea & pasa \\
+Oro & \texttt{fact\_venta}: clave única & bloquea & pasa \\
+Oro & \texttt{fact\_venta}: sin huérfanos en las cuatro dimensiones & bloquea & pasa \\
+Oro & Fechas de factura dentro del período & bloquea & pasa \\
+Oro & Conciliación plata $\rightarrow$ oro: 13.845 líneas y 15.345.639 L en ambas & bloquea & pasa \\
+Oro & Litros distintos de cero en todas las líneas & bloquea & pasa \\
+Plata & Precio de lista (15--120 USD por caja) y descuento (0--30\,\%) en rango & avisa & pasa \\
+Oro & Cifras de control de la E1 (4,574 y 5,085 USD/L; 10.672 líneas) & avisa & pasa \\
+Oro & Idempotencia contra el oro publicado & avisa & pasa \\
+Oro & Acuerdo de servicio: al menos 80\,\% de los litros con costo real (82,8\,\%) & avisa & pasa \\
+Oro & Acuerdo de servicio: al menos 98\,\% de las ventas llega a \texttt{fact\_venta} (99,0\,\%) & avisa & pasa \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Linaje.} Unity Catalog dibuja solo el linaje entre tablas. La figura~\ref{fig:linaje} lo completa hasta la pantalla para cada campo de la métrica: de qué columna sale, qué regla lo corrige, en qué campo del hecho queda, en qué medida entra y dónde se ve. Por ejemplo, el ingreso del precio por litro nace en el precio unitario, el descuento, el monto y la moneda de la venta; pasa por cuatro reglas (formatos, 555 montos recalculados, 542 monedas imputadas, conversión con el dólar del día); queda en \texttt{monto\_neto\_usd}; y llega al tablero como el numerador de \texttt{precio\_por\_litro}.
+
+\begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=0.78\textwidth]{linaje.pdf}
+  \caption{Linaje de la métrica, de la columna de origen a la pantalla. Fuente: elaboración propia a partir del código de la cadena.}
+  \label{fig:linaje}
+\end{figure}
+
+\paragraph{Acuerdo de servicio de \texttt{fact\_venta}.} Lo que la gerencia puede esperar de la tabla y de la cifra:
+
+\begin{center}\small
+\begin{tabular}{@{}l p{5.3cm} p{6.2cm}@{}}
+\toprule
+Compromiso & Valor & Por qué ese umbral \\
+\midrule
+Frescura & Mensual; a más tardar 5 días hábiles después del cierre & Comercial arma hoy la cifra una vez al mes (V, acta del 4 de septiembre) \\
+Completitud & $\geq$\,98\,\% de las ventas registradas llega a \texttt{fact\_venta}; $\geq$\,80\,\% de los litros con costo real & Hoy llegan 99,0\,\% y hay 82,8\,\% con costo real; bajo esos pisos el margen deja de ser defendible \\
+Calidad & 100\,\% de las bloqueantes y $\geq$\,90\,\% del total en verde & Una bloqueante en rojo es un número que no se puede defender \\
+Dueño & Área comercial (propuesta, I) & Es quien hoy descarga el ERP y arma la cifra mensual (V) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent Los dos pisos de completitud se miden en cada corrida como pruebas que avisan; la frescura, con la fecha de la última corrida, que el pie del tablero muestra junto a las pruebas en verde y la fuente del dólar.

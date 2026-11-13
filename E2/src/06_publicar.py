@@ -18,7 +18,7 @@ sys.path.insert(0, os.path.join(os.getcwd(), "lib"))
 import comun
 
 P = comun.parametros(dbutils, {"catalogo": "vallehondo", "run_id": "", "dir_raw": "", "dir_lib": "",
-                               "dueno_dato": "Gerencia Comercial de Exportaciones"})
+                               "dueno_dato": "Área comercial"})
 CAT, RUN_ID, INICIO = P["catalogo"], P["run_id"], comun.ahora()
 OB, O = f"{CAT}.oro_borrador", f"{CAT}.oro"
 

@@ -10,14 +10,14 @@ Misma pregunta de negocio que la E1: el precio promedio por litro de exportació
 
 El notebook crea (o actualiza) el job `vallehondo_e2` con los ocho pasos de la cadena, lo ejecuta en cómputo serverless, muestra las pruebas de calidad y las cifras del informe y, al final, publica el tablero e imprime su enlace. No hay que instalar nada ni configurar credenciales: las fuentes van en el repositorio (`E2/datos/raw/`) y el código se lee desde la carpeta Git.
 
-**Tiempo:** alrededor de 10 minutos (la primera vez el cómputo serverless tarda un poco más en partir).
+**Tiempo:** unos 6 minutos (5,5 el job y medio minuto publicar el tablero), medidos en una corrida de cero sobre un catálogo vacío.
 
 **Qué se espera ver al final:**
 
 - Los ocho pasos en `SUCCESS`.
 - 15 de 15 pruebas de calidad en `pasa`.
 - Las cifras del informe: 4,574 y 5,085 USD/L, alza de 11,2 %, mezcla 107,9 % y precio −6,9 % del alza; en pesos, +10,1 % al dólar de la factura y +6,3 % al de la cobranza estimada; un punto de gran reserva vale 353 MM CLP de margen bruto al año.
-- El enlace **Abrir el tablero publicado**.
+- El enlace **Abrir el tablero publicado**. El tablero queda en la carpeta `vallehondo_e2` de quien corrió el notebook; la copia del repositorio no se modifica.
 
 **Alternativa con la CLI** (desde la carpeta `E2/`): `databricks bundle deploy && databricks bundle run vallehondo_e2`. El bundle (`databricks.yml`) despliega el mismo job y el tablero.
 

@@ -1,0 +1,2683 @@
+{
+ "datasets": [
+  {
+   "name": "ds_resumen",
+   "displayName": "Resumen por escenario y mercado",
+   "queryLines": [
+    "WITH esc AS (SELECT DISTINCT correcciones, litros_caja_magnum, litros_caja_etiqueta, moneda_fecha, moneda FROM agg_escenarios)\n",
+    "SELECT e.correcciones, e.litros_caja_etiqueta, e.moneda_fecha, e.moneda, t.mercado,\n",
+    "       t.precio_s1, t.precio_s2, t.alza_pct, t.mezcla_pct_del_alza, t.precio_pct_del_alza,\n",
+    "       t.gran_reserva_s1, t.gran_reserva_s2\n",
+    "FROM v_descomposicion_total t JOIN esc e USING (correcciones, litros_caja_magnum, moneda_fecha)\n",
+    "WHERE e.moneda_fecha = :moneda AND e.correcciones = :correcciones AND e.litros_caja_etiqueta = :litros AND t.mercado = :mercado\n"
+   ],
+   "catalog": "vallehondo",
+   "schema": "oro",
+   "parameters": [
+    {
+     "displayName": "moneda",
+     "keyword": "moneda",
+     "dataType": "STRING",
+     "defaultSelection": {
+      "values": {
+       "dataType": "STRING",
+       "values": [
+        {
+         "value": "USD"
+        }
+       ]
+      }
+     }
+    },
+    {
+     "displayName": "correcciones",
+     "keyword": "correcciones",
+     "dataType": "STRING",
+     "defaultSelection": {
+      "values": {
+       "dataType": "STRING",
+       "values": [
+        {
+         "value": "Con todas las correcciones (principal)"
+        }
+       ]
+      }
+     }
+    },
+    {
+     "displayName": "litros",
+     "keyword": "litros",
+     "dataType": "STRING",
+     "defaultSelection": {
+      "values": {
+       "dataType": "STRING",
+       "values": [
+        {
+         "value": "9,0 L (principal)"
+        }
+       ]
+      }
+     }
+    },
+    {
+     "displayName": "mercado",
+     "keyword": "mercado",
+     "dataType": "STRING",
+     "defaultSelection": {
+      "values": {
+       "dataType": "STRING",
+       "values": [
+        {
+         "value": "Todos los mercados"
+        }
+       ]
+      }
+     }
+    }
+   ]
+  },
+  {
+   "name": "ds_puente",
+   "displayName": "Puente mezcla / precio / cruzado",
+   "queryLines": [
+    "WITH esc AS (SELECT DISTINCT correcciones, litros_caja_magnum, litros_caja_etiqueta, moneda_fecha, moneda FROM agg_escenarios)\n",
+    "SELECT e.correcciones, e.litros_caja_etiqueta, e.moneda_fecha, t.mercado,\n",
+    "       stack(3, 1, 'Mezcla', t.efecto_mezcla, 2, 'Precio', t.efecto_precio,\n",
+    "             3, 'Cruzado', t.efecto_cruzado) AS (orden, componente, valor)\n",
+    "FROM v_descomposicion_total t JOIN esc e USING (correcciones, litros_caja_magnum, moneda_fecha)\n",
+    "WHERE e.moneda_fecha = :moneda AND e.correcciones = :correcciones AND e.litros_caja_etiqueta = :litros AND t.mercado = :mercado\n",
+    "ORDER BY orden\n"
+   ],
+   "catalog": "vallehondo",
+   "schema": "oro",
+   "parameters": [
+    {
+     "displayName": "moneda",
+     "keyword": "moneda",
+     "dataType": "STRING",
+     "defaultSelection": {
+      "values": {
+       "dataType": "STRING",
+       "values": [
+        {
+         "value": "USD"
+        }
+       ]
+      }
+     }
+    },
+    {
+     "displayName": "correcciones",
+     "keyword": "correcciones",
+     "dataType": "STRING",
+     "defaultSelection": {
+      "values": {
+       "dataType": "STRING",
+       "values": [
+        {
+         "value": "Con todas las correcciones (principal)"
+        }
+       ]
+      }
+     }
+    },
+    {
+     "displayName": "litros",
+     "keyword": "litros",
+     "dataType": "STRING",
+     "defaultSelection": {
+      "values": {
+       "dataType": "STRING",
+       "values": [
+        {
+         "value": "9,0 L (principal)"
+        }
+       ]
+      }
+     }
+    },
+    {
+     "displayName": "mercado",
+     "keyword": "mercado",
+     "dataType": "STRING",
+     "defaultSelection": {
+      "values": {
+       "dataType": "STRING",
+       "values": [
+        {
+         "value": "Todos los mercados"
+        }
+       ]
+      }
+     }
+    }
+   ]
+  },
+  {
+   "name": "ds_tier",
+   "displayName": "Participación y precio por tier",
+   "queryLines": [
+    "WITH esc AS (SELECT DISTINCT correcciones, litros_caja_magnum, litros_caja_etiqueta, moneda_fecha, moneda FROM agg_escenarios)\n",
+    "SELECT e.correcciones, e.litros_caja_etiqueta, e.moneda_fecha, d.mercado, d.tier,\n",
+    "       stack(2, '1.er semestre', d.participacion_s1, d.precio_s1,\n",
+    "                '2.º semestre', d.participacion_s2, d.precio_s2) AS (semestre, participacion, precio_litro)\n",
+    "FROM v_descomposicion d JOIN esc e USING (correcciones, litros_caja_magnum, moneda_fecha)\n",
+    "WHERE e.moneda_fecha = :moneda AND e.correcciones = :correcciones AND e.litros_caja_etiqueta = :litros AND d.mercado = :mercado\n"
+   ],
+   "catalog": "vallehondo",
+   "schema": "oro",
+   "parameters": [
+    {
+     "displayName": "moneda",
+     "keyword": "moneda",
+     "dataType": "STRING",
+     "defaultSelection": {
+      "values": {
+       "dataType": "STRING",
+       "values": [
+        {
+         "value": "USD"
+        }
+       ]
+      }
+     }
+    },
+    {
+     "displayName": "correcciones",
+     "keyword": "correcciones",
+     "dataType": "STRING",
+     "defaultSelection": {
+      "values": {
+       "dataType": "STRING",
+       "values": [
+        {
+         "value": "Con todas las correcciones (principal)"
+        }
+       ]
+      }
+     }
+    },
+    {
+     "displayName": "litros",
+     "keyword": "litros",
+     "dataType": "STRING",
+     "defaultSelection": {
+      "values": {
+       "dataType": "STRING",
+       "values": [
+        {
+         "value": "9,0 L (principal)"
+        }
+       ]
+      }
+     }
+    },
+    {
+     "displayName": "mercado",
+     "keyword": "mercado",
+     "dataType": "STRING",
+     "defaultSelection": {
+      "values": {
+       "dataType": "STRING",
+       "values": [
+        {
+         "value": "Todos los mercados"
+        }
+       ]
+      }
+     }
+    }
+   ]
+  },
+  {
+   "name": "ds_mercados",
+   "displayName": "Lectura por mercado",
+   "queryLines": [
+    "WITH esc AS (SELECT DISTINCT correcciones, litros_caja_magnum, litros_caja_etiqueta, moneda_fecha, moneda FROM agg_escenarios)\n",
+    "SELECT e.correcciones, e.litros_caja_etiqueta, e.moneda_fecha, m.mercado, m.zona, m.hemisferio, m.lectura,\n",
+    "       m.motivo_hipotesis, m.alza_pct, m.mezcla_pct_del_alza, m.gran_reserva_s1, m.gran_reserva_s2,\n",
+    "       m.precio_s1, m.precio_s2, m.margen_litro_s1, m.margen_litro_s2, m.alza_margen_litro_pct,\n",
+    "       m.cobertura_costo_real, m.lineas, m.litros_anuales\n",
+    "FROM v_mercados m JOIN esc e USING (correcciones, litros_caja_magnum, moneda_fecha)\n",
+    "WHERE e.moneda_fecha = :moneda AND e.correcciones = :correcciones AND e.litros_caja_etiqueta = :litros\n",
+    "ORDER BY m.litros_anuales DESC\n"
+   ],
+   "catalog": "vallehondo",
+   "schema": "oro",
+   "parameters": [
+    {
+     "displayName": "moneda",
+     "keyword": "moneda",
+     "dataType": "STRING",
+     "defaultSelection": {
+      "values": {
+       "dataType": "STRING",
+       "values": [
+        {
+         "value": "USD"
+        }
+       ]
+      }
+     }
+    },
+    {
+     "displayName": "correcciones",
+     "keyword": "correcciones",
+     "dataType": "STRING",
+     "defaultSelection": {
+      "values": {
+       "dataType": "STRING",
+       "values": [
+        {
+         "value": "Con todas las correcciones (principal)"
+        }
+       ]
+      }
+     }
+    },
+    {
+     "displayName": "litros",
+     "keyword": "litros",
+     "dataType": "STRING",
+     "defaultSelection": {
+      "values": {
+       "dataType": "STRING",
+       "values": [
+        {
+         "value": "9,0 L (principal)"
+        }
+       ]
+      }
+     }
+    }
+   ]
+  },
+  {
+   "name": "ds_valor",
+   "displayName": "Valor de un punto de mezcla (CLP)",
+   "queryLines": [
+    "WITH esc AS (SELECT DISTINCT correcciones, litros_caja_magnum, litros_caja_etiqueta, moneda_fecha, moneda FROM agg_escenarios)\n",
+    "SELECT e.correcciones, e.litros_caja_etiqueta, v.moneda_fecha AS fecha_dolar,\n",
+    "       v.valor_punto_vs_varietal / 1e6 AS valor_punto_varietal_mm,\n",
+    "       v.valor_punto_vs_reserva / 1e6 AS valor_punto_reserva_mm,\n",
+    "       v.valor_caja_vs_varietal, v.cajas_por_punto\n",
+    "FROM v_valor_punto v JOIN esc e USING (correcciones, litros_caja_magnum, moneda_fecha)\n",
+    "WHERE v.moneda_fecha IN ('CLP · fecha de factura', 'CLP · cobranza estimada') AND e.correcciones = :correcciones AND e.litros_caja_etiqueta = :litros\n",
+    "ORDER BY fecha_dolar DESC\n"
+   ],
+   "catalog": "vallehondo",
+   "schema": "oro",
+   "parameters": [
+    {
+     "displayName": "correcciones",
+     "keyword": "correcciones",
+     "dataType": "STRING",
+     "defaultSelection": {
+      "values": {
+       "dataType": "STRING",
+       "values": [
+        {
+         "value": "Con todas las correcciones (principal)"
+        }
+       ]
+      }
+     }
+    },
+    {
+     "displayName": "litros",
+     "keyword": "litros",
+     "dataType": "STRING",
+     "defaultSelection": {
+      "values": {
+       "dataType": "STRING",
+       "values": [
+        {
+         "value": "9,0 L (principal)"
+        }
+       ]
+      }
+     }
+    }
+   ]
+  },
+  {
+   "name": "ds_estado",
+   "displayName": "Estado de la última corrida",
+   "queryLines": [
+    "SELECT concat(pruebas_en_verde, ' de ', pruebas_total, ' en verde') AS pruebas,\n",
+    "       date_format(from_utc_timestamp(ultima_actualizacion_utc, 'America/Santiago'), 'yyyy-MM-dd HH:mm') AS actualizado,\n",
+    "       run_id AS corrida, dolar, dueno_dato, periodo, fuente\n",
+    "FROM v_estado_corrida\n"
+   ],
+   "catalog": "vallehondo",
+   "schema": "oro"
+  },
+  {
+   "name": "ds_mes_tier",
+   "displayName": "Precio por litro por mes y tier (metric view)",
+   "queryLines": [
+    "SELECT tier, make_date(2025, CAST(mes AS INT), 1) AS mes,\n",
+    "       MEASURE(precio_por_litro) AS precio_por_litro\n",
+    "FROM mv_vallehondo\n",
+    "WHERE moneda_fecha = :moneda AND correcciones = :correcciones AND litros_caja_etiqueta = :litros\n",
+    "GROUP BY ALL\n"
+   ],
+   "catalog": "vallehondo",
+   "schema": "oro",
+   "parameters": [
+    {
+     "displayName": "moneda",
+     "keyword": "moneda",
+     "dataType": "STRING",
+     "defaultSelection": {
+      "values": {
+       "dataType": "STRING",
+       "values": [
+        {
+         "value": "USD"
+        }
+       ]
+      }
+     }
+    },
+    {
+     "displayName": "correcciones",
+     "keyword": "correcciones",
+     "dataType": "STRING",
+     "defaultSelection": {
+      "values": {
+       "dataType": "STRING",
+       "values": [
+        {
+         "value": "Con todas las correcciones (principal)"
+        }
+       ]
+      }
+     }
+    },
+    {
+     "displayName": "litros",
+     "keyword": "litros",
+     "dataType": "STRING",
+     "defaultSelection": {
+      "values": {
+       "dataType": "STRING",
+       "values": [
+        {
+         "value": "9,0 L (principal)"
+        }
+       ]
+      }
+     }
+    }
+   ]
+  },
+  {
+   "name": "ds_mes",
+   "displayName": "Gran reserva por mes (metric view)",
+   "queryLines": [
+    "SELECT make_date(2025, CAST(mes AS INT), 1) AS mes,\n",
+    "       MEASURE(participacion_gran_reserva) AS participacion_gran_reserva, MEASURE(precio_por_litro) AS precio_por_litro\n",
+    "FROM mv_vallehondo\n",
+    "WHERE moneda_fecha = :moneda AND correcciones = :correcciones AND litros_caja_etiqueta = :litros\n",
+    "GROUP BY ALL\n"
+   ],
+   "catalog": "vallehondo",
+   "schema": "oro",
+   "parameters": [
+    {
+     "displayName": "moneda",
+     "keyword": "moneda",
+     "dataType": "STRING",
+     "defaultSelection": {
+      "values": {
+       "dataType": "STRING",
+       "values": [
+        {
+         "value": "USD"
+        }
+       ]
+      }
+     }
+    },
+    {
+     "displayName": "correcciones",
+     "keyword": "correcciones",
+     "dataType": "STRING",
+     "defaultSelection": {
+      "values": {
+       "dataType": "STRING",
+       "values": [
+        {
+         "value": "Con todas las correcciones (principal)"
+        }
+       ]
+      }
+     }
+    },
+    {
+     "displayName": "litros",
+     "keyword": "litros",
+     "dataType": "STRING",
+     "defaultSelection": {
+      "values": {
+       "dataType": "STRING",
+       "values": [
+        {
+         "value": "9,0 L (principal)"
+        }
+       ]
+      }
+     }
+    }
+   ]
+  },
+  {
+   "name": "ds_pruebas",
+   "displayName": "Pruebas de calidad de la última corrida",
+   "queryLines": [
+    "SELECT capa, prueba, severidad, resultado, filas_fallan, accion, detalle\n",
+    "FROM v_pruebas\n",
+    "ORDER BY CASE resultado WHEN 'falla' THEN 0 ELSE 1 END, capa, prueba\n"
+   ],
+   "catalog": "vallehondo",
+   "schema": "oro"
+  },
+  {
+   "name": "op_moneda",
+   "displayName": "Opciones: moneda y fecha del dólar",
+   "queryLines": [
+    "SELECT DISTINCT moneda_fecha, orden_moneda FROM agg_escenarios ORDER BY orden_moneda\n"
+   ],
+   "catalog": "vallehondo",
+   "schema": "oro"
+  },
+  {
+   "name": "op_correcciones",
+   "displayName": "Opciones: correcciones",
+   "queryLines": [
+    "SELECT DISTINCT correcciones, orden_correcciones FROM agg_escenarios ORDER BY orden_correcciones\n"
+   ],
+   "catalog": "vallehondo",
+   "schema": "oro"
+  },
+  {
+   "name": "op_litros",
+   "displayName": "Opciones: litros por caja magnum",
+   "queryLines": [
+    "SELECT DISTINCT litros_caja_etiqueta, litros_caja_magnum FROM agg_escenarios ORDER BY litros_caja_magnum DESC\n"
+   ],
+   "catalog": "vallehondo",
+   "schema": "oro"
+  },
+  {
+   "name": "op_mercado",
+   "displayName": "Opciones: mercado",
+   "queryLines": [
+    "SELECT DISTINCT mercado FROM v_descomposicion_total ORDER BY mercado = 'Todos los mercados' DESC, mercado\n"
+   ],
+   "catalog": "vallehondo",
+   "schema": "oro"
+  }
+ ],
+ "pages": [
+  {
+   "name": "respuesta",
+   "displayName": "Respuesta",
+   "pageType": "PAGE_TYPE_CANVAS",
+   "layoutVersion": "GRID_V1",
+   "layout": [
+    {
+     "widget": {
+      "name": "titulo",
+      "multilineTextboxSpec": {
+       "lines": [
+        "## ¿El alza del precio por litro de exportación fue por precio o por mezcla?\n",
+        "\n",
+        "Facturas de exportación 2025; primer semestre = enero a junio, segundo = julio a diciembre. Con la definición principal, casi toda el alza viene de vender más **gran reserva**: el precio dentro de cada tier no subió. Cambie la moneda, la fecha del dólar, las correcciones o los litros por caja y todo se recalcula con la misma definición (`oro.mv_vallehondo`)."
+       ]
+      }
+     },
+     "position": {
+      "x": 0,
+      "y": 0,
+      "width": 12,
+      "height": 2
+     }
+    },
+    {
+     "widget": {
+      "name": "f1_moneda",
+      "queries": [
+       {
+        "name": "f1_moneda_opciones",
+        "query": {
+         "datasetName": "op_moneda",
+         "fields": [
+          {
+           "name": "moneda_fecha",
+           "expression": "`moneda_fecha`"
+          }
+         ],
+         "disaggregated": false
+        }
+       },
+       {
+        "name": "f1_moneda_ds_resumen",
+        "query": {
+         "datasetName": "ds_resumen",
+         "parameters": [
+          {
+           "name": "moneda",
+           "keyword": "moneda"
+          }
+         ],
+         "disaggregated": false
+        }
+       },
+       {
+        "name": "f1_moneda_ds_puente",
+        "query": {
+         "datasetName": "ds_puente",
+         "parameters": [
+          {
+           "name": "moneda",
+           "keyword": "moneda"
+          }
+         ],
+         "disaggregated": false
+        }
+       },
+       {
+        "name": "f1_moneda_ds_tier",
+        "query": {
+         "datasetName": "ds_tier",
+         "parameters": [
+          {
+           "name": "moneda",
+           "keyword": "moneda"
+          }
+         ],
+         "disaggregated": false
+        }
+       },
+       {
+        "name": "f1_moneda_ds_mercados",
+        "query": {
+         "datasetName": "ds_mercados",
+         "parameters": [
+          {
+           "name": "moneda",
+           "keyword": "moneda"
+          }
+         ],
+         "disaggregated": false
+        }
+       }
+      ],
+      "spec": {
+       "version": 2,
+       "widgetType": "filter-single-select",
+       "encodings": {
+        "fields": [
+         {
+          "fieldName": "moneda_fecha",
+          "displayName": "Moneda y fecha del dólar",
+          "queryName": "f1_moneda_opciones"
+         },
+         {
+          "parameterName": "moneda",
+          "queryName": "f1_moneda_ds_resumen"
+         },
+         {
+          "parameterName": "moneda",
+          "queryName": "f1_moneda_ds_puente"
+         },
+         {
+          "parameterName": "moneda",
+          "queryName": "f1_moneda_ds_tier"
+         },
+         {
+          "parameterName": "moneda",
+          "queryName": "f1_moneda_ds_mercados"
+         }
+        ]
+       },
+       "selection": {
+        "defaultSelection": {
+         "values": {
+          "dataType": "STRING",
+          "values": [
+           {
+            "value": "USD"
+           }
+          ]
+         }
+        }
+       },
+       "frame": {
+        "showTitle": true,
+        "title": "Moneda y fecha del dólar"
+       }
+      }
+     },
+     "position": {
+      "x": 0,
+      "y": 2,
+      "width": 3,
+      "height": 2
+     }
+    },
+    {
+     "widget": {
+      "name": "f1_correcciones",
+      "queries": [
+       {
+        "name": "f1_correcciones_opciones",
+        "query": {
+         "datasetName": "op_correcciones",
+         "fields": [
+          {
+           "name": "correcciones",
+           "expression": "`correcciones`"
+          }
+         ],
+         "disaggregated": false
+        }
+       },
+       {
+        "name": "f1_correcciones_ds_resumen",
+        "query": {
+         "datasetName": "ds_resumen",
+         "parameters": [
+          {
+           "name": "correcciones",
+           "keyword": "correcciones"
+          }
+         ],
+         "disaggregated": false
+        }
+       },
+       {
+        "name": "f1_correcciones_ds_puente",
+        "query": {
+         "datasetName": "ds_puente",
+         "parameters": [
+          {
+           "name": "correcciones",
+           "keyword": "correcciones"
+          }
+         ],
+         "disaggregated": false
+        }
+       },
+       {
+        "name": "f1_correcciones_ds_tier",
+        "query": {
+         "datasetName": "ds_tier",
+         "parameters": [
+          {
+           "name": "correcciones",
+           "keyword": "correcciones"
+          }
+         ],
+         "disaggregated": false
+        }
+       },
+       {
+        "name": "f1_correcciones_ds_mercados",
+        "query": {
+         "datasetName": "ds_mercados",
+         "parameters": [
+          {
+           "name": "correcciones",
+           "keyword": "correcciones"
+          }
+         ],
+         "disaggregated": false
+        }
+       },
+       {
+        "name": "f1_correcciones_ds_valor",
+        "query": {
+         "datasetName": "ds_valor",
+         "parameters": [
+          {
+           "name": "correcciones",
+           "keyword": "correcciones"
+          }
+         ],
+         "disaggregated": false
+        }
+       }
+      ],
+      "spec": {
+       "version": 2,
+       "widgetType": "filter-single-select",
+       "encodings": {
+        "fields": [
+         {
+          "fieldName": "correcciones",
+          "displayName": "Correcciones de datos",
+          "queryName": "f1_correcciones_opciones"
+         },
+         {
+          "parameterName": "correcciones",
+          "queryName": "f1_correcciones_ds_resumen"
+         },
+         {
+          "parameterName": "correcciones",
+          "queryName": "f1_correcciones_ds_puente"
+         },
+         {
+          "parameterName": "correcciones",
+          "queryName": "f1_correcciones_ds_tier"
+         },
+         {
+          "parameterName": "correcciones",
+          "queryName": "f1_correcciones_ds_mercados"
+         },
+         {
+          "parameterName": "correcciones",
+          "queryName": "f1_correcciones_ds_valor"
+         }
+        ]
+       },
+       "selection": {
+        "defaultSelection": {
+         "values": {
+          "dataType": "STRING",
+          "values": [
+           {
+            "value": "Con todas las correcciones (principal)"
+           }
+          ]
+         }
+        }
+       },
+       "frame": {
+        "showTitle": true,
+        "title": "Correcciones de datos"
+       }
+      }
+     },
+     "position": {
+      "x": 3,
+      "y": 2,
+      "width": 3,
+      "height": 2
+     }
+    },
+    {
+     "widget": {
+      "name": "f1_litros",
+      "queries": [
+       {
+        "name": "f1_litros_opciones",
+        "query": {
+         "datasetName": "op_litros",
+         "fields": [
+          {
+           "name": "litros_caja_etiqueta",
+           "expression": "`litros_caja_etiqueta`"
+          }
+         ],
+         "disaggregated": false
+        }
+       },
+       {
+        "name": "f1_litros_ds_resumen",
+        "query": {
+         "datasetName": "ds_resumen",
+         "parameters": [
+          {
+           "name": "litros",
+           "keyword": "litros"
+          }
+         ],
+         "disaggregated": false
+        }
+       },
+       {
+        "name": "f1_litros_ds_puente",
+        "query": {
+         "datasetName": "ds_puente",
+         "parameters": [
+          {
+           "name": "litros",
+           "keyword": "litros"
+          }
+         ],
+         "disaggregated": false
+        }
+       },
+       {
+        "name": "f1_litros_ds_tier",
+        "query": {
+         "datasetName": "ds_tier",
+         "parameters": [
+          {
+           "name": "litros",
+           "keyword": "litros"
+          }
+         ],
+         "disaggregated": false
+        }
+       },
+       {
+        "name": "f1_litros_ds_mercados",
+        "query": {
+         "datasetName": "ds_mercados",
+         "parameters": [
+          {
+           "name": "litros",
+           "keyword": "litros"
+          }
+         ],
+         "disaggregated": false
+        }
+       },
+       {
+        "name": "f1_litros_ds_valor",
+        "query": {
+         "datasetName": "ds_valor",
+         "parameters": [
+          {
+           "name": "litros",
+           "keyword": "litros"
+          }
+         ],
+         "disaggregated": false
+        }
+       }
+      ],
+      "spec": {
+       "version": 2,
+       "widgetType": "filter-single-select",
+       "encodings": {
+        "fields": [
+         {
+          "fieldName": "litros_caja_etiqueta",
+          "displayName": "Litros por caja magnum",
+          "queryName": "f1_litros_opciones"
+         },
+         {
+          "parameterName": "litros",
+          "queryName": "f1_litros_ds_resumen"
+         },
+         {
+          "parameterName": "litros",
+          "queryName": "f1_litros_ds_puente"
+         },
+         {
+          "parameterName": "litros",
+          "queryName": "f1_litros_ds_tier"
+         },
+         {
+          "parameterName": "litros",
+          "queryName": "f1_litros_ds_mercados"
+         },
+         {
+          "parameterName": "litros",
+          "queryName": "f1_litros_ds_valor"
+         }
+        ]
+       },
+       "selection": {
+        "defaultSelection": {
+         "values": {
+          "dataType": "STRING",
+          "values": [
+           {
+            "value": "9,0 L (principal)"
+           }
+          ]
+         }
+        }
+       },
+       "frame": {
+        "showTitle": true,
+        "title": "Litros por caja magnum"
+       }
+      }
+     },
+     "position": {
+      "x": 6,
+      "y": 2,
+      "width": 3,
+      "height": 2
+     }
+    },
+    {
+     "widget": {
+      "name": "f1_mercado",
+      "queries": [
+       {
+        "name": "f1_mercado_opciones",
+        "query": {
+         "datasetName": "op_mercado",
+         "fields": [
+          {
+           "name": "mercado",
+           "expression": "`mercado`"
+          }
+         ],
+         "disaggregated": false
+        }
+       },
+       {
+        "name": "f1_mercado_ds_resumen",
+        "query": {
+         "datasetName": "ds_resumen",
+         "parameters": [
+          {
+           "name": "mercado",
+           "keyword": "mercado"
+          }
+         ],
+         "disaggregated": false
+        }
+       },
+       {
+        "name": "f1_mercado_ds_puente",
+        "query": {
+         "datasetName": "ds_puente",
+         "parameters": [
+          {
+           "name": "mercado",
+           "keyword": "mercado"
+          }
+         ],
+         "disaggregated": false
+        }
+       },
+       {
+        "name": "f1_mercado_ds_tier",
+        "query": {
+         "datasetName": "ds_tier",
+         "parameters": [
+          {
+           "name": "mercado",
+           "keyword": "mercado"
+          }
+         ],
+         "disaggregated": false
+        }
+       }
+      ],
+      "spec": {
+       "version": 2,
+       "widgetType": "filter-single-select",
+       "encodings": {
+        "fields": [
+         {
+          "fieldName": "mercado",
+          "displayName": "Mercado",
+          "queryName": "f1_mercado_opciones"
+         },
+         {
+          "parameterName": "mercado",
+          "queryName": "f1_mercado_ds_resumen"
+         },
+         {
+          "parameterName": "mercado",
+          "queryName": "f1_mercado_ds_puente"
+         },
+         {
+          "parameterName": "mercado",
+          "queryName": "f1_mercado_ds_tier"
+         }
+        ]
+       },
+       "selection": {
+        "defaultSelection": {
+         "values": {
+          "dataType": "STRING",
+          "values": [
+           {
+            "value": "Todos los mercados"
+           }
+          ]
+         }
+        }
+       },
+       "frame": {
+        "showTitle": true,
+        "title": "Mercado"
+       }
+      }
+     },
+     "position": {
+      "x": 9,
+      "y": 2,
+      "width": 3,
+      "height": 2
+     }
+    },
+    {
+     "widget": {
+      "name": "c_precio",
+      "queries": [
+       {
+        "name": "main_query",
+        "query": {
+         "datasetName": "ds_resumen",
+         "fields": [
+          {
+           "name": "min(precio_s2)",
+           "expression": "MIN(`precio_s2`)"
+          },
+          {
+           "name": "min(precio_s1)",
+           "expression": "MIN(`precio_s1`)"
+          }
+         ],
+         "disaggregated": false
+        }
+       }
+      ],
+      "spec": {
+       "version": 2,
+       "widgetType": "counter",
+       "encodings": {
+        "value": {
+         "fieldName": "min(precio_s2)",
+         "format": {
+          "type": "number-plain",
+          "abbreviation": "none",
+          "decimalPlaces": {
+           "type": "exact",
+           "places": 2
+          }
+         }
+        },
+        "target": {
+         "fieldName": "min(precio_s1)",
+         "displayName": "1.er semestre",
+         "format": {
+          "type": "number-plain",
+          "abbreviation": "none",
+          "decimalPlaces": {
+           "type": "exact",
+           "places": 2
+          }
+         }
+        }
+       },
+       "frame": {
+        "showTitle": true,
+        "title": "Precio medio por litro, 2.º semestre",
+        "showDescription": true,
+        "description": "Comparado con el 1.er semestre. USD/L o CLP/L según la moneda elegida."
+       }
+      }
+     },
+     "position": {
+      "x": 0,
+      "y": 4,
+      "width": 3,
+      "height": 3
+     }
+    },
+    {
+     "widget": {
+      "name": "c_mezcla",
+      "queries": [
+       {
+        "name": "main_query",
+        "query": {
+         "datasetName": "ds_resumen",
+         "fields": [
+          {
+           "name": "min(mezcla_pct_del_alza)",
+           "expression": "MIN(`mezcla_pct_del_alza`)"
+          }
+         ],
+         "disaggregated": false
+        }
+       }
+      ],
+      "spec": {
+       "version": 2,
+       "widgetType": "counter",
+       "encodings": {
+        "value": {
+         "fieldName": "min(mezcla_pct_del_alza)",
+         "format": {
+          "type": "number-percent",
+          "decimalPlaces": {
+           "type": "max",
+           "places": 0
+          }
+         }
+        }
+       },
+       "frame": {
+        "showTitle": true,
+        "title": "Parte del alza que explica la mezcla",
+        "showDescription": true,
+        "description": "El resto: precio dentro de cada tier y efecto cruzado (ver el puente)."
+       }
+      }
+     },
+     "position": {
+      "x": 3,
+      "y": 4,
+      "width": 3,
+      "height": 3
+     }
+    },
+    {
+     "widget": {
+      "name": "c_gr",
+      "queries": [
+       {
+        "name": "main_query",
+        "query": {
+         "datasetName": "ds_resumen",
+         "fields": [
+          {
+           "name": "min(gran_reserva_s2)",
+           "expression": "MIN(`gran_reserva_s2`)"
+          },
+          {
+           "name": "min(gran_reserva_s1)",
+           "expression": "MIN(`gran_reserva_s1`)"
+          }
+         ],
+         "disaggregated": false
+        }
+       }
+      ],
+      "spec": {
+       "version": 2,
+       "widgetType": "counter",
+       "encodings": {
+        "value": {
+         "fieldName": "min(gran_reserva_s2)",
+         "format": {
+          "type": "number-percent",
+          "decimalPlaces": {
+           "type": "max",
+           "places": 1
+          }
+         }
+        },
+        "target": {
+         "fieldName": "min(gran_reserva_s1)",
+         "displayName": "1.er semestre",
+         "format": {
+          "type": "number-percent",
+          "decimalPlaces": {
+           "type": "max",
+           "places": 1
+          }
+         }
+        }
+       },
+       "frame": {
+        "showTitle": true,
+        "title": "Gran reserva, % de los litros (2.º semestre)",
+        "showDescription": true,
+        "description": "Comparado con el 1.er semestre."
+       }
+      }
+     },
+     "position": {
+      "x": 6,
+      "y": 4,
+      "width": 3,
+      "height": 3
+     }
+    },
+    {
+     "widget": {
+      "name": "c_valor",
+      "queries": [
+       {
+        "name": "main_query",
+        "query": {
+         "datasetName": "ds_valor",
+         "fields": [
+          {
+           "name": "min(valor_punto_varietal_mm)",
+           "expression": "MIN(`valor_punto_varietal_mm`)"
+          }
+         ],
+         "disaggregated": false,
+         "filters": [
+          {
+           "expression": "`fecha_dolar` = 'CLP · fecha de factura'"
+          }
+         ]
+        }
+       }
+      ],
+      "spec": {
+       "version": 2,
+       "widgetType": "counter",
+       "encodings": {
+        "value": {
+         "fieldName": "min(valor_punto_varietal_mm)",
+         "format": {
+          "type": "number-plain",
+          "abbreviation": "none",
+          "decimalPlaces": {
+           "type": "max",
+           "places": 0
+          }
+         },
+         "formatTemplate": "{{@formatted}} MM"
+        }
+       },
+       "frame": {
+        "showTitle": true,
+        "title": "Valor de 1 punto de gran reserva",
+        "showDescription": true,
+        "description": "Margen bruto al año si 1 % de los litros pasa de varietal a gran reserva (CLP, dólar de la factura). Total exportación: no cambia con el mercado."
+       }
+      }
+     },
+     "position": {
+      "x": 9,
+      "y": 4,
+      "width": 3,
+      "height": 3
+     }
+    },
+    {
+     "widget": {
+      "name": "w_puente",
+      "queries": [
+       {
+        "name": "main_query",
+        "query": {
+         "datasetName": "ds_puente",
+         "fields": [
+          {
+           "name": "componente",
+           "expression": "`componente`"
+          },
+          {
+           "name": "sum(valor)",
+           "expression": "SUM(`valor`)"
+          }
+         ],
+         "disaggregated": false
+        }
+       }
+      ],
+      "spec": {
+       "version": 3,
+       "widgetType": "waterfall",
+       "encodings": {
+        "x": {
+         "fieldName": "componente",
+         "displayName": "Componente",
+         "scale": {
+          "type": "categorical",
+          "sort": {
+           "by": "custom-order",
+           "orderedValues": [
+            "Mezcla",
+            "Precio",
+            "Cruzado"
+           ]
+          }
+         }
+        },
+        "y": {
+         "fieldName": "sum(valor)",
+         "displayName": "Aporte al alza por litro",
+         "scale": {
+          "type": "quantitative"
+         },
+         "format": {
+          "type": "number-plain",
+          "abbreviation": "none",
+          "decimalPlaces": {
+           "type": "max",
+           "places": 3
+          }
+         }
+        },
+        "label": {
+         "show": true
+        }
+       },
+       "frame": {
+        "showTitle": true,
+        "title": "¿De dónde sale el alza del precio por litro?",
+        "showDescription": true,
+        "description": "Mezcla: más litros de tiers caros. Precio: cambio del precio dentro de cada tier. Aporte a la diferencia S2 − S1, por litro, en la moneda elegida."
+       }
+      }
+     },
+     "position": {
+      "x": 0,
+      "y": 7,
+      "width": 4,
+      "height": 6
+     }
+    },
+    {
+     "widget": {
+      "name": "w_mezcla",
+      "queries": [
+       {
+        "name": "main_query",
+        "query": {
+         "datasetName": "ds_tier",
+         "fields": [
+          {
+           "name": "tier",
+           "expression": "`tier`"
+          },
+          {
+           "name": "semestre",
+           "expression": "`semestre`"
+          },
+          {
+           "name": "sum(participacion)",
+           "expression": "SUM(`participacion`)"
+          }
+         ],
+         "disaggregated": false
+        }
+       }
+      ],
+      "spec": {
+       "version": 3,
+       "widgetType": "bar",
+       "encodings": {
+        "x": {
+         "fieldName": "tier",
+         "displayName": "Tier",
+         "scale": {
+          "type": "categorical",
+          "sort": {
+           "by": "custom-order",
+           "orderedValues": [
+            "Varietal",
+            "Reserva",
+            "Gran Reserva"
+           ]
+          }
+         }
+        },
+        "y": {
+         "fieldName": "sum(participacion)",
+         "displayName": "% de los litros",
+         "scale": {
+          "type": "quantitative"
+         },
+         "format": {
+          "type": "number-percent",
+          "decimalPlaces": {
+           "type": "max",
+           "places": 0
+          }
+         }
+        },
+        "color": {
+         "fieldName": "semestre",
+         "displayName": "Semestre",
+         "scale": {
+          "type": "categorical",
+          "mappings": [
+           {
+            "value": "1.er semestre",
+            "color": "#9AA5B1"
+           },
+           {
+            "value": "2.º semestre",
+            "color": "#7B2D43"
+           }
+          ]
+         }
+        },
+        "label": {
+         "show": true
+        }
+       },
+       "mark": {
+        "layout": "group"
+       },
+       "frame": {
+        "showTitle": true,
+        "title": "Participación de cada tier en los litros",
+        "showDescription": true,
+        "description": "La mezcla: qué parte de los litros vendidos es de cada tier."
+       }
+      }
+     },
+     "position": {
+      "x": 4,
+      "y": 7,
+      "width": 4,
+      "height": 6
+     }
+    },
+    {
+     "widget": {
+      "name": "w_precio_tier",
+      "queries": [
+       {
+        "name": "main_query",
+        "query": {
+         "datasetName": "ds_tier",
+         "fields": [
+          {
+           "name": "tier",
+           "expression": "`tier`"
+          },
+          {
+           "name": "semestre",
+           "expression": "`semestre`"
+          },
+          {
+           "name": "sum(precio_litro)",
+           "expression": "SUM(`precio_litro`)"
+          }
+         ],
+         "disaggregated": false
+        }
+       }
+      ],
+      "spec": {
+       "version": 3,
+       "widgetType": "bar",
+       "encodings": {
+        "x": {
+         "fieldName": "tier",
+         "displayName": "Tier",
+         "scale": {
+          "type": "categorical",
+          "sort": {
+           "by": "custom-order",
+           "orderedValues": [
+            "Varietal",
+            "Reserva",
+            "Gran Reserva"
+           ]
+          }
+         }
+        },
+        "y": {
+         "fieldName": "sum(precio_litro)",
+         "displayName": "Precio por litro",
+         "scale": {
+          "type": "quantitative"
+         },
+         "format": {
+          "type": "number-plain",
+          "abbreviation": "none",
+          "decimalPlaces": {
+           "type": "max",
+           "places": 2
+          }
+         }
+        },
+        "color": {
+         "fieldName": "semestre",
+         "displayName": "Semestre",
+         "scale": {
+          "type": "categorical",
+          "mappings": [
+           {
+            "value": "1.er semestre",
+            "color": "#9AA5B1"
+           },
+           {
+            "value": "2.º semestre",
+            "color": "#7B2D43"
+           }
+          ]
+         }
+        },
+        "label": {
+         "show": true
+        }
+       },
+       "mark": {
+        "layout": "group"
+       },
+       "frame": {
+        "showTitle": true,
+        "title": "Precio por litro dentro de cada tier",
+        "showDescription": true,
+        "description": "El precio: cuánto se cobró por litro en cada tier."
+       }
+      }
+     },
+     "position": {
+      "x": 8,
+      "y": 7,
+      "width": 4,
+      "height": 6
+     }
+    },
+    {
+     "widget": {
+      "name": "t_valor",
+      "queries": [
+       {
+        "name": "main_query",
+        "query": {
+         "datasetName": "ds_valor",
+         "fields": [
+          {
+           "name": "fecha_dolar",
+           "expression": "`fecha_dolar`"
+          },
+          {
+           "name": "valor_punto_varietal_mm",
+           "expression": "`valor_punto_varietal_mm`"
+          },
+          {
+           "name": "valor_punto_reserva_mm",
+           "expression": "`valor_punto_reserva_mm`"
+          },
+          {
+           "name": "valor_caja_vs_varietal",
+           "expression": "`valor_caja_vs_varietal`"
+          },
+          {
+           "name": "cajas_por_punto",
+           "expression": "`cajas_por_punto`"
+          }
+         ],
+         "disaggregated": true
+        }
+       }
+      ],
+      "spec": {
+       "version": 2,
+       "widgetType": "table",
+       "encodings": {
+        "columns": [
+         {
+          "fieldName": "fecha_dolar",
+          "displayName": "Dólar a la"
+         },
+         {
+          "fieldName": "valor_punto_varietal_mm",
+          "displayName": "1 punto GR en vez de varietal (MM CLP/año)",
+          "format": {
+           "type": "number-plain",
+           "abbreviation": "none",
+           "decimalPlaces": {
+            "type": "max",
+            "places": 0
+           }
+          }
+         },
+         {
+          "fieldName": "valor_punto_reserva_mm",
+          "displayName": "1 punto GR en vez de reserva (MM CLP/año)",
+          "format": {
+           "type": "number-plain",
+           "abbreviation": "none",
+           "decimalPlaces": {
+            "type": "max",
+            "places": 0
+           }
+          }
+         },
+         {
+          "fieldName": "valor_caja_vs_varietal",
+          "displayName": "Margen extra por caja GR vs varietal (CLP)",
+          "format": {
+           "type": "number-plain",
+           "abbreviation": "none",
+           "decimalPlaces": {
+            "type": "max",
+            "places": 0
+           }
+          }
+         },
+         {
+          "fieldName": "cajas_por_punto",
+          "displayName": "Cajas que son 1 punto",
+          "format": {
+           "type": "number-plain",
+           "abbreviation": "none",
+           "decimalPlaces": {
+            "type": "max",
+            "places": 0
+           }
+          }
+         }
+        ]
+       },
+       "frame": {
+        "showTitle": true,
+        "title": "Cuánto vale mover la mezcla (margen bruto, CLP)",
+        "showDescription": true,
+        "description": "Una acción para vender más gran reserva se paga si su costo anual es menor que los puntos que mueve por el valor de un punto."
+       }
+      }
+     },
+     "position": {
+      "x": 0,
+      "y": 13,
+      "width": 12,
+      "height": 3
+     }
+    },
+    {
+     "widget": {
+      "name": "t_mercados",
+      "queries": [
+       {
+        "name": "main_query",
+        "query": {
+         "datasetName": "ds_mercados",
+         "fields": [
+          {
+           "name": "mercado",
+           "expression": "`mercado`"
+          },
+          {
+           "name": "lectura",
+           "expression": "`lectura`"
+          },
+          {
+           "name": "alza_pct",
+           "expression": "`alza_pct`"
+          },
+          {
+           "name": "mezcla_pct_del_alza",
+           "expression": "`mezcla_pct_del_alza`"
+          },
+          {
+           "name": "gran_reserva_s1",
+           "expression": "`gran_reserva_s1`"
+          },
+          {
+           "name": "gran_reserva_s2",
+           "expression": "`gran_reserva_s2`"
+          },
+          {
+           "name": "precio_s1",
+           "expression": "`precio_s1`"
+          },
+          {
+           "name": "precio_s2",
+           "expression": "`precio_s2`"
+          },
+          {
+           "name": "alza_margen_litro_pct",
+           "expression": "`alza_margen_litro_pct`"
+          },
+          {
+           "name": "cobertura_costo_real",
+           "expression": "`cobertura_costo_real`"
+          },
+          {
+           "name": "lineas",
+           "expression": "`lineas`"
+          },
+          {
+           "name": "hemisferio",
+           "expression": "`hemisferio`"
+          },
+          {
+           "name": "motivo_hipotesis",
+           "expression": "`motivo_hipotesis`"
+          }
+         ],
+         "disaggregated": true
+        }
+       }
+      ],
+      "spec": {
+       "version": 2,
+       "widgetType": "table",
+       "encodings": {
+        "columns": [
+         {
+          "fieldName": "mercado",
+          "displayName": "Mercado"
+         },
+         {
+          "fieldName": "lectura",
+          "displayName": "Lectura"
+         },
+         {
+          "fieldName": "alza_pct",
+          "displayName": "Alza precio/L",
+          "format": {
+           "type": "number-percent",
+           "decimalPlaces": {
+            "type": "max",
+            "places": 1
+           }
+          }
+         },
+         {
+          "fieldName": "mezcla_pct_del_alza",
+          "displayName": "Mezcla, % del alza",
+          "format": {
+           "type": "number-percent",
+           "decimalPlaces": {
+            "type": "max",
+            "places": 0
+           }
+          }
+         },
+         {
+          "fieldName": "gran_reserva_s1",
+          "displayName": "GR 1.er sem.",
+          "format": {
+           "type": "number-percent",
+           "decimalPlaces": {
+            "type": "max",
+            "places": 0
+           }
+          }
+         },
+         {
+          "fieldName": "gran_reserva_s2",
+          "displayName": "GR 2.º sem.",
+          "format": {
+           "type": "number-percent",
+           "decimalPlaces": {
+            "type": "max",
+            "places": 0
+           }
+          }
+         },
+         {
+          "fieldName": "precio_s1",
+          "displayName": "Precio/L 1.er sem.",
+          "format": {
+           "type": "number-plain",
+           "abbreviation": "none",
+           "decimalPlaces": {
+            "type": "max",
+            "places": 2
+           }
+          }
+         },
+         {
+          "fieldName": "precio_s2",
+          "displayName": "Precio/L 2.º sem.",
+          "format": {
+           "type": "number-plain",
+           "abbreviation": "none",
+           "decimalPlaces": {
+            "type": "max",
+            "places": 2
+           }
+          }
+         },
+         {
+          "fieldName": "alza_margen_litro_pct",
+          "displayName": "Alza margen/L",
+          "format": {
+           "type": "number-percent",
+           "decimalPlaces": {
+            "type": "max",
+            "places": 1
+           }
+          }
+         },
+         {
+          "fieldName": "cobertura_costo_real",
+          "displayName": "Litros con costo real",
+          "format": {
+           "type": "number-percent",
+           "decimalPlaces": {
+            "type": "max",
+            "places": 0
+           }
+          }
+         },
+         {
+          "fieldName": "lineas",
+          "displayName": "Líneas",
+          "format": {
+           "type": "number-plain",
+           "abbreviation": "none",
+           "decimalPlaces": {
+            "type": "max",
+            "places": 0
+           }
+          }
+         },
+         {
+          "fieldName": "hemisferio",
+          "displayName": "Hemisferio"
+         },
+         {
+          "fieldName": "motivo_hipotesis",
+          "displayName": "Por qué es hipótesis"
+         }
+        ]
+       },
+       "frame": {
+        "showTitle": true,
+        "title": "Por mercado: ¿se repite el patrón?",
+        "showDescription": true,
+        "description": "Recomendación si el precio por litro sube, la mezcla explica al menos 80 % del alza, gran reserva sube al menos 5 puntos, al menos 80 % de los litros tiene costo real y hay al menos 300 líneas. Si falla algo, es hipótesis."
+       }
+      }
+     },
+     "position": {
+      "x": 0,
+      "y": 16,
+      "width": 12,
+      "height": 7
+     }
+    },
+    {
+     "widget": {
+      "name": "t_estado",
+      "queries": [
+       {
+        "name": "main_query",
+        "query": {
+         "datasetName": "ds_estado",
+         "fields": [
+          {
+           "name": "actualizado",
+           "expression": "`actualizado`"
+          },
+          {
+           "name": "pruebas",
+           "expression": "`pruebas`"
+          },
+          {
+           "name": "dolar",
+           "expression": "`dolar`"
+          },
+          {
+           "name": "dueno_dato",
+           "expression": "`dueno_dato`"
+          },
+          {
+           "name": "periodo",
+           "expression": "`periodo`"
+          },
+          {
+           "name": "fuente",
+           "expression": "`fuente`"
+          },
+          {
+           "name": "corrida",
+           "expression": "`corrida`"
+          }
+         ],
+         "disaggregated": true
+        }
+       }
+      ],
+      "spec": {
+       "version": 2,
+       "widgetType": "table",
+       "encodings": {
+        "columns": [
+         {
+          "fieldName": "actualizado",
+          "displayName": "Actualizado (hora de Chile)"
+         },
+         {
+          "fieldName": "pruebas",
+          "displayName": "Pruebas de calidad"
+         },
+         {
+          "fieldName": "dolar",
+          "displayName": "Dólar observado"
+         },
+         {
+          "fieldName": "dueno_dato",
+          "displayName": "Dueño del dato"
+         },
+         {
+          "fieldName": "periodo",
+          "displayName": "Período"
+         },
+         {
+          "fieldName": "fuente",
+          "displayName": "Fuentes"
+         },
+         {
+          "fieldName": "corrida",
+          "displayName": "Corrida"
+         }
+        ]
+       },
+       "frame": {
+        "showTitle": true,
+        "title": "Estado del dato"
+       }
+      }
+     },
+     "position": {
+      "x": 0,
+      "y": 23,
+      "width": 12,
+      "height": 3
+     }
+    }
+   ]
+  },
+  {
+   "name": "definicion",
+   "displayName": "Definición y calidad",
+   "pageType": "PAGE_TYPE_CANVAS",
+   "layoutVersion": "GRID_V1",
+   "layout": [
+    {
+     "widget": {
+      "name": "titulo2",
+      "multilineTextboxSpec": {
+       "lines": [
+        "## Definición y calidad del dato\n",
+        "\n",
+        "Los gráficos de esta página leen directo de la metric view. Abajo, las pruebas que corren antes de publicar: si una bloqueante falla, el oro no se actualiza."
+       ]
+      }
+     },
+     "position": {
+      "x": 0,
+      "y": 0,
+      "width": 12,
+      "height": 2
+     }
+    },
+    {
+     "widget": {
+      "name": "f2_moneda",
+      "queries": [
+       {
+        "name": "f2_moneda_opciones",
+        "query": {
+         "datasetName": "op_moneda",
+         "fields": [
+          {
+           "name": "moneda_fecha",
+           "expression": "`moneda_fecha`"
+          }
+         ],
+         "disaggregated": false
+        }
+       },
+       {
+        "name": "f2_moneda_ds_mes_tier",
+        "query": {
+         "datasetName": "ds_mes_tier",
+         "parameters": [
+          {
+           "name": "moneda",
+           "keyword": "moneda"
+          }
+         ],
+         "disaggregated": false
+        }
+       },
+       {
+        "name": "f2_moneda_ds_mes",
+        "query": {
+         "datasetName": "ds_mes",
+         "parameters": [
+          {
+           "name": "moneda",
+           "keyword": "moneda"
+          }
+         ],
+         "disaggregated": false
+        }
+       }
+      ],
+      "spec": {
+       "version": 2,
+       "widgetType": "filter-single-select",
+       "encodings": {
+        "fields": [
+         {
+          "fieldName": "moneda_fecha",
+          "displayName": "Moneda y fecha del dólar",
+          "queryName": "f2_moneda_opciones"
+         },
+         {
+          "parameterName": "moneda",
+          "queryName": "f2_moneda_ds_mes_tier"
+         },
+         {
+          "parameterName": "moneda",
+          "queryName": "f2_moneda_ds_mes"
+         }
+        ]
+       },
+       "selection": {
+        "defaultSelection": {
+         "values": {
+          "dataType": "STRING",
+          "values": [
+           {
+            "value": "USD"
+           }
+          ]
+         }
+        }
+       },
+       "frame": {
+        "showTitle": true,
+        "title": "Moneda y fecha del dólar"
+       }
+      }
+     },
+     "position": {
+      "x": 0,
+      "y": 2,
+      "width": 4,
+      "height": 2
+     }
+    },
+    {
+     "widget": {
+      "name": "f2_correcciones",
+      "queries": [
+       {
+        "name": "f2_correcciones_opciones",
+        "query": {
+         "datasetName": "op_correcciones",
+         "fields": [
+          {
+           "name": "correcciones",
+           "expression": "`correcciones`"
+          }
+         ],
+         "disaggregated": false
+        }
+       },
+       {
+        "name": "f2_correcciones_ds_mes_tier",
+        "query": {
+         "datasetName": "ds_mes_tier",
+         "parameters": [
+          {
+           "name": "correcciones",
+           "keyword": "correcciones"
+          }
+         ],
+         "disaggregated": false
+        }
+       },
+       {
+        "name": "f2_correcciones_ds_mes",
+        "query": {
+         "datasetName": "ds_mes",
+         "parameters": [
+          {
+           "name": "correcciones",
+           "keyword": "correcciones"
+          }
+         ],
+         "disaggregated": false
+        }
+       }
+      ],
+      "spec": {
+       "version": 2,
+       "widgetType": "filter-single-select",
+       "encodings": {
+        "fields": [
+         {
+          "fieldName": "correcciones",
+          "displayName": "Correcciones de datos",
+          "queryName": "f2_correcciones_opciones"
+         },
+         {
+          "parameterName": "correcciones",
+          "queryName": "f2_correcciones_ds_mes_tier"
+         },
+         {
+          "parameterName": "correcciones",
+          "queryName": "f2_correcciones_ds_mes"
+         }
+        ]
+       },
+       "selection": {
+        "defaultSelection": {
+         "values": {
+          "dataType": "STRING",
+          "values": [
+           {
+            "value": "Con todas las correcciones (principal)"
+           }
+          ]
+         }
+        }
+       },
+       "frame": {
+        "showTitle": true,
+        "title": "Correcciones de datos"
+       }
+      }
+     },
+     "position": {
+      "x": 4,
+      "y": 2,
+      "width": 4,
+      "height": 2
+     }
+    },
+    {
+     "widget": {
+      "name": "f2_litros",
+      "queries": [
+       {
+        "name": "f2_litros_opciones",
+        "query": {
+         "datasetName": "op_litros",
+         "fields": [
+          {
+           "name": "litros_caja_etiqueta",
+           "expression": "`litros_caja_etiqueta`"
+          }
+         ],
+         "disaggregated": false
+        }
+       },
+       {
+        "name": "f2_litros_ds_mes_tier",
+        "query": {
+         "datasetName": "ds_mes_tier",
+         "parameters": [
+          {
+           "name": "litros",
+           "keyword": "litros"
+          }
+         ],
+         "disaggregated": false
+        }
+       },
+       {
+        "name": "f2_litros_ds_mes",
+        "query": {
+         "datasetName": "ds_mes",
+         "parameters": [
+          {
+           "name": "litros",
+           "keyword": "litros"
+          }
+         ],
+         "disaggregated": false
+        }
+       }
+      ],
+      "spec": {
+       "version": 2,
+       "widgetType": "filter-single-select",
+       "encodings": {
+        "fields": [
+         {
+          "fieldName": "litros_caja_etiqueta",
+          "displayName": "Litros por caja magnum",
+          "queryName": "f2_litros_opciones"
+         },
+         {
+          "parameterName": "litros",
+          "queryName": "f2_litros_ds_mes_tier"
+         },
+         {
+          "parameterName": "litros",
+          "queryName": "f2_litros_ds_mes"
+         }
+        ]
+       },
+       "selection": {
+        "defaultSelection": {
+         "values": {
+          "dataType": "STRING",
+          "values": [
+           {
+            "value": "9,0 L (principal)"
+           }
+          ]
+         }
+        }
+       },
+       "frame": {
+        "showTitle": true,
+        "title": "Litros por caja magnum"
+       }
+      }
+     },
+     "position": {
+      "x": 8,
+      "y": 2,
+      "width": 4,
+      "height": 2
+     }
+    },
+    {
+     "widget": {
+      "name": "w_precio_mes",
+      "queries": [
+       {
+        "name": "main_query",
+        "query": {
+         "datasetName": "ds_mes_tier",
+         "fields": [
+          {
+           "name": "monthly(mes)",
+           "expression": "DATE_TRUNC(\"MONTH\", `mes`)"
+          },
+          {
+           "name": "tier",
+           "expression": "`tier`"
+          },
+          {
+           "name": "min(precio_por_litro)",
+           "expression": "MIN(`precio_por_litro`)"
+          }
+         ],
+         "disaggregated": false
+        }
+       }
+      ],
+      "spec": {
+       "version": 3,
+       "widgetType": "line",
+       "encodings": {
+        "x": {
+         "fieldName": "monthly(mes)",
+         "displayName": "Mes",
+         "scale": {
+          "type": "temporal"
+         }
+        },
+        "y": {
+         "fieldName": "min(precio_por_litro)",
+         "displayName": "Precio por litro",
+         "scale": {
+          "type": "quantitative"
+         },
+         "format": {
+          "type": "number-plain",
+          "abbreviation": "none",
+          "decimalPlaces": {
+           "type": "max",
+           "places": 2
+          }
+         }
+        },
+        "color": {
+         "fieldName": "tier",
+         "displayName": "Tier",
+         "scale": {
+          "type": "categorical",
+          "mappings": [
+           {
+            "value": "Varietal",
+            "color": "#D4A373"
+           },
+           {
+            "value": "Reserva",
+            "color": "#3C6E91"
+           },
+           {
+            "value": "Gran Reserva",
+            "color": "#7B2D43"
+           }
+          ]
+         }
+        }
+       },
+       "frame": {
+        "showTitle": true,
+        "title": "Precio por litro de cada tier, mes a mes",
+        "showDescription": true,
+        "description": "Todos los mercados. MEASURE(precio_por_litro) por tier."
+       }
+      }
+     },
+     "position": {
+      "x": 0,
+      "y": 4,
+      "width": 6,
+      "height": 6
+     }
+    },
+    {
+     "widget": {
+      "name": "w_gr_mes",
+      "queries": [
+       {
+        "name": "main_query",
+        "query": {
+         "datasetName": "ds_mes",
+         "fields": [
+          {
+           "name": "monthly(mes)",
+           "expression": "DATE_TRUNC(\"MONTH\", `mes`)"
+          },
+          {
+           "name": "min(participacion_gran_reserva)",
+           "expression": "MIN(`participacion_gran_reserva`)"
+          }
+         ],
+         "disaggregated": false
+        }
+       }
+      ],
+      "spec": {
+       "version": 3,
+       "widgetType": "line",
+       "encodings": {
+        "x": {
+         "fieldName": "monthly(mes)",
+         "displayName": "Mes",
+         "scale": {
+          "type": "temporal"
+         }
+        },
+        "y": {
+         "fieldName": "min(participacion_gran_reserva)",
+         "displayName": "Gran reserva, % de los litros",
+         "scale": {
+          "type": "quantitative"
+         },
+         "format": {
+          "type": "number-percent",
+          "decimalPlaces": {
+           "type": "max",
+           "places": 0
+          }
+         }
+        }
+       },
+       "annotations": [
+        {
+         "type": "vertical-line",
+         "encodings": {
+          "x": {
+           "dataValue": "2025-07-01T00:00:00.000",
+           "dataType": "DATETIME"
+          },
+          "label": {
+           "value": "Comienza el 2.º semestre"
+          },
+          "color": {
+           "value": "#9AA5B1"
+          }
+         }
+        }
+       ],
+       "frame": {
+        "showTitle": true,
+        "title": "Gran reserva, % de los litros, mes a mes",
+        "showDescription": true,
+        "description": "Todos los mercados. MEASURE(participacion_gran_reserva)."
+       }
+      }
+     },
+     "position": {
+      "x": 6,
+      "y": 4,
+      "width": 6,
+      "height": 6
+     }
+    },
+    {
+     "widget": {
+      "name": "definicion",
+      "multilineTextboxSpec": {
+       "lines": [
+        "### Definición única\n",
+        "\n",
+        "**Precio medio por litro** = Σ ingreso neto ÷ Σ litros. Universo: líneas de exportación con factura de 2025; semestre según la fecha de factura.\n",
+        "\n",
+        "**Litros** = cajas × 9 L (12×750 y 6×1500). Los magnum a 18 o 4,5 L son extremos hipotéticos, no datos.\n",
+        "\n",
+        "**Pesos (CLP)**: cada línea se convierte con el dólar observado de su propia fecha (factura, cobranza estimada o embarque), nunca con un promedio anual.\n",
+        "\n",
+        "**Mezcla, precio y cruzado** (base 1.er semestre): mezcla = Σ(w₂−w₁)·p₁; precio = Σw₁·(p₂−p₁); cruzado = Σ(w₂−w₁)(p₂−p₁); w = participación de litros del tier, p = su precio por litro.\n",
+        "\n",
+        "**Margen bruto** = ingreso neto − costo de producto del maestro de costos. Si falta el costo, se imputa y la cobertura lo dice.\n",
+        "\n",
+        "**Valor de un punto de gran reserva** = 1 % de los litros del año × (margen/L gran reserva − margen/L varietal).\n",
+        "\n",
+        "Estas fórmulas viven una sola vez en la metric view `oro.mv_vallehondo` de Unity Catalog; el tablero, las vistas y las cifras del informe leen de ella."
+       ]
+      }
+     },
+     "position": {
+      "x": 0,
+      "y": 10,
+      "width": 5,
+      "height": 9
+     }
+    },
+    {
+     "widget": {
+      "name": "t_pruebas",
+      "queries": [
+       {
+        "name": "main_query",
+        "query": {
+         "datasetName": "ds_pruebas",
+         "fields": [
+          {
+           "name": "resultado",
+           "expression": "`resultado`"
+          },
+          {
+           "name": "severidad",
+           "expression": "`severidad`"
+          },
+          {
+           "name": "capa",
+           "expression": "`capa`"
+          },
+          {
+           "name": "prueba",
+           "expression": "`prueba`"
+          },
+          {
+           "name": "filas_fallan",
+           "expression": "`filas_fallan`"
+          },
+          {
+           "name": "accion",
+           "expression": "`accion`"
+          },
+          {
+           "name": "detalle",
+           "expression": "`detalle`"
+          }
+         ],
+         "disaggregated": true
+        }
+       }
+      ],
+      "spec": {
+       "version": 2,
+       "widgetType": "table",
+       "encodings": {
+        "columns": [
+         {
+          "fieldName": "resultado",
+          "displayName": "Resultado"
+         },
+         {
+          "fieldName": "severidad",
+          "displayName": "Severidad"
+         },
+         {
+          "fieldName": "capa",
+          "displayName": "Capa"
+         },
+         {
+          "fieldName": "prueba",
+          "displayName": "Prueba"
+         },
+         {
+          "fieldName": "filas_fallan",
+          "displayName": "Filas que fallan",
+          "format": {
+           "type": "number-plain",
+           "abbreviation": "none",
+           "decimalPlaces": {
+            "type": "max",
+            "places": 0
+           }
+          }
+         },
+         {
+          "fieldName": "accion",
+          "displayName": "Qué se hizo"
+         },
+         {
+          "fieldName": "detalle",
+          "displayName": "Detalle"
+         }
+        ]
+       },
+       "frame": {
+        "showTitle": true,
+        "title": "Pruebas de calidad de la última corrida",
+        "showDescription": true,
+        "description": "Bloquea: si falla, el job se detiene y el tablero sigue mostrando el último oro bueno. Avisa: se publica y se informa."
+       }
+      }
+     },
+     "position": {
+      "x": 5,
+      "y": 10,
+      "width": 7,
+      "height": 9
+     }
+    },
+    {
+     "widget": {
+      "name": "t_estado",
+      "queries": [
+       {
+        "name": "main_query",
+        "query": {
+         "datasetName": "ds_estado",
+         "fields": [
+          {
+           "name": "actualizado",
+           "expression": "`actualizado`"
+          },
+          {
+           "name": "pruebas",
+           "expression": "`pruebas`"
+          },
+          {
+           "name": "dolar",
+           "expression": "`dolar`"
+          },
+          {
+           "name": "dueno_dato",
+           "expression": "`dueno_dato`"
+          },
+          {
+           "name": "periodo",
+           "expression": "`periodo`"
+          },
+          {
+           "name": "fuente",
+           "expression": "`fuente`"
+          },
+          {
+           "name": "corrida",
+           "expression": "`corrida`"
+          }
+         ],
+         "disaggregated": true
+        }
+       }
+      ],
+      "spec": {
+       "version": 2,
+       "widgetType": "table",
+       "encodings": {
+        "columns": [
+         {
+          "fieldName": "actualizado",
+          "displayName": "Actualizado (hora de Chile)"
+         },
+         {
+          "fieldName": "pruebas",
+          "displayName": "Pruebas de calidad"
+         },
+         {
+          "fieldName": "dolar",
+          "displayName": "Dólar observado"
+         },
+         {
+          "fieldName": "dueno_dato",
+          "displayName": "Dueño del dato"
+         },
+         {
+          "fieldName": "periodo",
+          "displayName": "Período"
+         },
+         {
+          "fieldName": "fuente",
+          "displayName": "Fuentes"
+         },
+         {
+          "fieldName": "corrida",
+          "displayName": "Corrida"
+         }
+        ]
+       },
+       "frame": {
+        "showTitle": true,
+        "title": "Estado del dato"
+       }
+      }
+     },
+     "position": {
+      "x": 0,
+      "y": 19,
+      "width": 12,
+      "height": 3
+     }
+    }
+   ]
+  }
+ ],
+ "uiSettings": {
+  "theme": {
+   "canvasBackgroundColor": {
+    "light": "#FAF8F6",
+    "dark": "#1F1A1C"
+   },
+   "widgetBackgroundColor": {
+    "light": "#FFFFFF",
+    "dark": "#141012"
+   },
+   "widgetBorderColor": {
+    "light": "#FFFFFF",
+    "dark": "#141012"
+   },
+   "fontColor": {
+    "light": "#2B1D22",
+    "dark": "#EDE6E8"
+   },
+   "selectionColor": {
+    "light": "#2272B4",
+    "dark": "#8ACAFF"
+   },
+   "visualizationColors": [
+    "#7B2D43",
+    "#3C6E91",
+    "#D4A373",
+    "#5E8C6A",
+    "#C0697D",
+    "#4A4E69",
+    "#E9C46A"
+   ],
+   "widgetHeaderAlignment": "LEFT"
+  }
+ }
+}

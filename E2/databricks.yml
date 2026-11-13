@@ -1,0 +1,81 @@
+# Bundle de la E2 (alternativa con la CLI de Databricks al notebook correr_e2).
+# Uso: databricks bundle deploy && databricks bundle run vallehondo_e2   (despliega también el tablero)
+bundle:
+  name: vallehondo_e2
+
+variables:
+  catalogo:
+    description: Catálogo de Unity Catalog donde viven las capas
+    default: vallehondo
+  warehouse_id:
+    description: SQL warehouse del tablero
+    lookup:
+      warehouse: "Serverless Starter Warehouse"
+
+resources:
+  dashboards:
+    vallehondo:
+      display_name: "Vallehondo · Precio por litro de exportación"
+      file_path: ./tablero/vallehondo.lvdash.json
+      warehouse_id: ${var.warehouse_id}
+      embed_credentials: true
+
+  jobs:
+    vallehondo_e2:
+      name: vallehondo_e2
+      max_concurrent_runs: 1
+      description: "Cadena de la E2 (Viña Vallehondo, Grupo 2): bronce → plata → oro, con pruebas antes de publicar."
+      parameters:
+        - name: catalogo
+          default: ${var.catalogo}
+        - name: run_id
+          default: "{{job.run_id}}"
+        - name: dir_raw
+          default: ${workspace.file_path}/datos/raw
+        - name: dir_lib
+          default: ${workspace.file_path}/src/lib
+        - name: url_dolar
+          default: "https://mindicador.cl/api/dolar/{anio}"
+      tasks:
+        - task_key: 00_preparar
+          notebook_task:
+            notebook_path: ./src/00_preparar.py
+        - task_key: 01_bronce
+          depends_on:
+            - task_key: 00_preparar
+          notebook_task:
+            notebook_path: ./src/01_bronce.py
+        - task_key: 02_dolar
+          depends_on:
+            - task_key: 01_bronce
+          notebook_task:
+            notebook_path: ./src/02_dolar.py
+        - task_key: 03_plata
+          depends_on:
+            - task_key: 02_dolar
+          notebook_task:
+            notebook_path: ./src/03_plata.py
+        - task_key: 04_oro
+          depends_on:
+            - task_key: 03_plata
+          notebook_task:
+            notebook_path: ./src/04_oro.py
+        - task_key: 05_pruebas
+          depends_on:
+            - task_key: 04_oro
+          notebook_task:
+            notebook_path: ./src/05_pruebas.py
+        - task_key: 06_publicar
+          depends_on:
+            - task_key: 05_pruebas
+          notebook_task:
+            notebook_path: ./src/06_publicar.py
+        - task_key: 07_cifras
+          depends_on:
+            - task_key: 06_publicar
+          notebook_task:
+            notebook_path: ./src/07_cifras.py
+
+targets:
+  dev:
+    default: true

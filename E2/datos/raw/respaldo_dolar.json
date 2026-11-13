@@ -1,0 +1,7 @@
+{
+  "descripcion": "Respaldos de la API del dólar observado de mindicador.cl. La cadena los usa si la API no responde.",
+  "archivos": {
+    "dolar_2025.json": {"url": "https://mindicador.cl/api/dolar/2025", "descargado_el": "2026-10-02"},
+    "dolar_2026.json": {"url": "https://mindicador.cl/api/dolar/2026", "descargado_el": "2026-10-12"}
+  }
+}

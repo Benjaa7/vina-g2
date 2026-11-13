@@ -1,0 +1,79 @@
+% Sección C · Modelo dimensional y una sola definición (10 %). Responsable: Benja. Extensión: 2 páginas.
+% Requiere en el preámbulo: graphicx, booktabs, array. Las cifras salen de E2/output/cifras.md.
+
+\section{Modelo dimensional y una sola definición}
+
+\paragraph{El mandato, corregido.} En la E1 escribimos que la empresa había declarado el litro como su unidad. No es así, y la observación tiene razón. La empresa mide de dos formas: comercial habla de cajas y operaciones y finanzas de litros, y nadie reconcilia ambas cifras. «No tenemos un gobierno de datos», reconoció la contraparte (V, acta del 4 de septiembre). Ese es el problema que resuelve una definición única. El litro es \emph{nuestra} unidad analítica, una decisión del equipo (I): es la única en que el precio de un magnum y el de una botella estándar se pueden comparar y sumar. La equivalencia de 9,0 litros por caja para los dos formatos sale del maestro de costos (M) y queda escrita en una sola columna del modelo.
+
+\paragraph{El modelo.} Es el de la E1: un solo proceso de negocio, la venta, en una estrella con cuatro dimensiones a un salto (figura~\ref{fig:modelo}).
+
+\begin{quote}
+\textbf{Grano.} Una fila de \texttt{fact\_venta} es una línea de venta facturada: un producto de una añada, vendido a un cliente en una fecha.
+\end{quote}
+
+\begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=0.56\textwidth]{modelo_estrella.pdf}
+  \caption{Modelo estrella de la venta. Diccionario de datos en el anexo~C. Fuente: elaboración propia.}
+  \label{fig:modelo}
+\end{figure}
+
+El hecho guarda lo que se suma (cajas, litros, montos en pesos y dólares, costo) y nunca el precio por litro: una razón de sumas no es aditiva y se calcula en cada corte. Esa propiedad es también la respuesta de negocio, porque el precio medio por litro sube cuando crece la proporción de un tier caro aunque ningún precio cambie. \texttt{dim\_producto} tiene una fila por producto y añada (96), porque el costo por caja depende de la añada; ahí viven el tier y los litros por caja. \texttt{dim\_mercado} trae el canal (la métrica es solo exportación) y el hemisferio, que fija los días de cobranza. \texttt{dim\_tiempo} trae el semestre y si el día tuvo dólar publicado.
+
+\paragraph{Qué cambió respecto de la E1.} Al hecho se agregaron cinco columnas para que cada escenario salga de la misma tabla y no de una segunda cadena: el dólar a la fecha estimada de cobranza y a la de embarque, la marca de costo imputado (para declarar la cobertura del margen) y las cajas y el monto tal como venían en el ERP, sin corregir. Junto con las marcas que ya tenía (monto recalculado, cajas corregidas, moneda imputada), eso permite recalcular la métrica con cualquier corrección apagada.
+
+\paragraph{La métrica, definida una vez.} Las fórmulas viven en un solo objeto del oro: la metric view \texttt{oro.mv\_vallehondo} de Unity Catalog. Su fuente es \texttt{agg\_escenarios}, que agrega el universo (10.672 líneas de exportación facturadas en 2025) por semestre, mes, mercado, tier y formato para cada uno de los 60 escenarios: 4 monedas y fechas del dólar, 3 equivalencias de litros por caja y 5 combinaciones de correcciones. Las medidas son:
+
+\begin{table}[!htbp]
+\centering\small
+\begin{tabular}{@{}l l l@{}}
+\toprule
+Medida & Fórmula & Unidad \\
+\midrule
+\texttt{precio\_por\_litro} & $\sum$ ingreso neto $\div$ $\sum$ litros & USD/L o CLP/L \\
+\texttt{margen\_por\_litro} & $\sum$ (ingreso neto $-$ costo de producto) $\div$ $\sum$ litros & CLP/L (o USD/L) \\
+\texttt{participacion\_gran\_reserva} & litros de gran reserva $\div$ litros & \% \\
+\texttt{cobertura\_costo\_real} & litros con costo no imputado $\div$ litros & \% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent El tablero, las vistas de la descomposición y el paso que escribe las cifras del informe consultan estas medidas con \texttt{MEASURE()}; no existe una segunda fórmula en Python ni en el tablero. Por eso el precio medio por litro de exportación del informe, el de \texttt{cifras.md} y el del tablero son el mismo número con el mismo nombre: 4,574 y 5,085 USD/L, +11,2\,\%. La descomposición usa como base el primer semestre: mezcla = $\sum (w_2-w_1)\,p_1$, precio = $\sum w_1\,(p_2-p_1)$ y un término cruzado, donde $w$ es la participación de litros de cada tier y $p$ su precio por litro.
+
+\paragraph{La decisión de definición que defendemos: la fecha del dólar.} En dólares el alza es 11,2\,\% y no depende de ninguna fecha. En pesos sí depende, y es la definición que mueve el número (tabla~\ref{tab:fecha}). Cada línea se convierte con el dólar observado de su propia fecha, nunca con un promedio del semestre o del año.
+
+\begin{table}[!htbp]
+\centering\small
+\caption{Alza del primer al segundo semestre de 2025 según la fecha del dólar. Fuente: \texttt{cifras.md}.}
+\label{tab:fecha}
+\begin{tabular}{@{}l r r r@{}}
+\toprule
+Fecha del dólar & Precio por litro & Margen bruto por litro & Valor de un punto de gran reserva \\
+\midrule
+Factura (principal) & +10,1\,\% & +11,5\,\% (2.052 $\rightarrow$ 2.288 CLP/L) & 353 MM CLP al año \\
+Cobranza estimada & +6,3\,\% & +3,4\,\% (2.036 $\rightarrow$ 2.106 CLP/L) & 338 MM CLP al año \\
+Embarque (no confiable) & +10,8\,\% & --- & --- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent Elegimos la \textbf{fecha de factura} como principal porque el año «se cierra por factura, no por despacho» (V). La \textbf{cobranza estimada} (factura más 60 días en el hemisferio sur y 90 en el norte, según la contraparte) se acerca más a los pesos que efectivamente entran, y queda visible en el tablero: con ella el alza del margen por litro baja de 11,5\,\% a 3,4\,\%, porque el dólar estaba más bajo cuando se cobró el segundo semestre: 910,6 CLP/USD, contra 946,3 a la fecha de factura (tipo de cambio implícito, ponderado por el monto de cada línea; M). La fecha de embarque se muestra con advertencia: en 30\,\% de las líneas es anterior a la factura (M). La recomendación no cambia con la fecha: un punto de gran reserva vale 353 o 338 MM CLP de margen al año.
+
+\paragraph{¿Cuánto del 108\,\% es limpieza de datos?} Corrimos la métrica con cada corrección apagada (tabla~\ref{tab:robustez}). Sin ninguna corrección el alza sería 17,6\,\% y la mezcla explicaría 78\,\%: los datos sucios inflan el alza, pero la conclusión se sostiene en todos los escenarios. La equivalencia de litros por caja casi no importa: con magnums de 18 o 4,5 L, extremos sin respaldo, la mezcla explica 108,2\,\%.
+
+\begin{table}[!htbp]
+\centering\small
+\caption{Robustez de la descomposición. Fuente: \texttt{cifras.md}.}
+\label{tab:robustez}
+\begin{tabular}{@{}l r r@{}}
+\toprule
+Escenario & Alza del precio por litro & Mezcla, \% del alza \\
+\midrule
+Con todas las correcciones (principal) & 11,2\,\% & 107,9\,\% \\
+Sin los 555 montos recalculados & 12,7\,\% & 94,9\,\% \\
+Sin las 151 cajas corregidas & 16,0\,\% & 90,9\,\% \\
+Sin las 542 monedas imputadas & 10,9\,\% & 108,0\,\% \\
+Sin ninguna corrección & 17,6\,\% & 78,2\,\% \\
+\bottomrule
+\end{tabular}
+\end{table}

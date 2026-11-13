@@ -1,0 +1,65 @@
+// Linaje de la métrica, de la columna de origen a la pantalla. Genera linaje.pdf con generar_figuras.py.
+digraph linaje {
+  rankdir=LR; nodesep=0.10; ranksep=0.35; newrank=true;
+  graph [fontname="Helvetica", fontsize=9.5, color="#1f3a5f", labeljust=c, penwidth=0.7];
+  node  [fontname="Helvetica", fontsize=8, shape=box, style="rounded,filled", fillcolor=white, color="#1f3a5f", penwidth=0.7, margin="0.06,0.03"];
+  edge  [color="#777777", arrowsize=0.5, penwidth=0.7];
+
+  subgraph cluster_f { label="Fuente (columna)"; style=rounded;
+    f_precio [label="ventas.precio_unitario\nventas.descuento"];
+    f_monto  [label="ventas.monto_neto"];
+    f_moneda [label="ventas.moneda_id"];
+    f_cajas  [label="ventas.cajas"];
+    f_emb    [label="embarques: cajas\npor línea"];
+    f_lxc    [label="costos: litros_por_caja"];
+    f_costo  [label="costos: costo_caja_clp"];
+    f_tier   [label="costos: tier"];
+    f_fecha  [label="ventas.fecha"];
+    f_canal  [label="mercados.canal"];
+    f_dolar  [label="dólar observado\n(API o respaldo)"];
+  }
+  subgraph cluster_r { label="Regla en plata (líneas del universo)"; style=rounded;
+    r_formato [label="formatos de precio\ny descuento"];
+    r_monto   [label="monto recalculado\n(555)"];
+    r_moneda  [label="moneda imputada\n(542)"];
+    r_bot     [label="cajas cargadas\nen botellas (151)"];
+    r_costo   [label="costo imputado\n(1.852)"];
+    r_fecha   [label="4 formatos\nde fecha"];
+    r_tc      [label="día hábil previo; factura,\ncobranza (+60/+90) o embarque"];
+  }
+  subgraph cluster_h { label="fact_venta y dimensiones"; style=rounded;
+    h_monto  [label="monto_neto_usd\nmonto_neto_clp"];
+    h_litros [label="cajas → litros"];
+    h_costo  [label="costo_total_clp\ncosto_imputado"];
+    h_tier   [label="dim_producto.tier"];
+    h_tiempo [label="dim_tiempo.semestre, mes"];
+    h_canal  [label="dim_mercado.canal"];
+    h_tc     [label="tipo_cambio\ntipo_cambio_cobranza"];
+  }
+  agg [label="agg_escenarios\n(exportación 2025, por\nescenario, semestre, mes,\nmercado, tier y formato)", fillcolor="#eef2f7"];
+  subgraph cluster_m { label="Medida (oro.mv_vallehondo)"; style=rounded;
+    m_precio [label="precio_por_litro\nΣ ingreso ÷ Σ litros", penwidth=1.3];
+    m_margen [label="margen_por_litro"];
+    m_gr     [label="participacion_gran_reserva"];
+    m_cob    [label="cobertura_costo_real"];
+  }
+  subgraph cluster_t { label="Tablero"; style=rounded;
+    t_kpi    [label="cifras clave"];
+    t_puente [label="puente mezcla / precio"];
+    t_valor  [label="valor de un punto (CLP)"];
+    t_merc   [label="lectura por mercado"];
+  }
+
+  f_precio -> r_formato -> h_monto; f_monto -> r_monto -> h_monto; f_moneda -> r_moneda -> h_monto;
+  f_cajas -> r_bot -> h_litros; f_emb -> r_bot; f_lxc -> h_litros;
+  f_costo -> r_costo -> h_costo; f_tier -> h_tier; f_fecha -> r_fecha -> h_tiempo; f_canal -> h_canal;
+  f_dolar -> r_tc -> h_tc; h_tc -> agg;
+  h_monto -> agg; h_litros -> agg; h_costo -> agg; h_tier -> agg; h_tiempo -> agg; h_canal -> agg;
+  agg -> m_precio; agg -> m_margen; agg -> m_gr; agg -> m_cob;
+  {rank=same; f_precio; f_monto; f_moneda; f_cajas; f_emb; f_lxc; f_costo; f_tier; f_fecha; f_canal; f_dolar}
+  {rank=same; r_formato; r_monto; r_moneda; r_bot; r_costo; r_fecha; r_tc}
+  {rank=same; h_monto; h_litros; h_costo; h_tier; h_tiempo; h_canal; h_tc}
+  {rank=same; m_precio; m_margen; m_gr; m_cob}
+  {rank=same; t_kpi; t_puente; t_valor; t_merc}
+  m_precio -> t_kpi; m_precio -> t_puente; m_gr -> t_kpi; m_margen -> t_valor; m_precio -> t_merc; m_margen -> t_merc; m_cob -> t_merc;
+}

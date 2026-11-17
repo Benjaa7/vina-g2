@@ -1,0 +1,18 @@
+% Anexo · Declaración de uso de inteligencia artificial.
+
+\section*{Anexo. Declaración de uso de inteligencia artificial}
+\label{anexo:ia}
+\addcontentsline{toc}{section}{Anexo. Declaración de uso de inteligencia artificial}
+
+Durante el desarrollo de la Entrega~2 y la Presentación~2 se utilizaron herramientas de inteligencia artificial generativa como apoyo técnico y editorial, manteniendo el criterio analítico, las definiciones de negocio y la responsabilidad integral de los resultados en el equipo:
+
+\begin{itemize}
+  \item \textbf{Herramientas utilizadas:} Claude (Anthropic) y Gemini (Google).
+  \item \textbf{Propósito de uso:} Refactorización y modularización de los notebooks de la cadena ELT en Databricks (\texttt{src/00\_preparar.py} a \texttt{07\_cifras.py}), estructuración de las pruebas automatizadas de calidad de datos, generación inicial del archivo de definición del tablero (\texttt{vallehondo.lvdash.json}), redacción y edición de secciones en \LaTeX{} y apoyo en la estimación de escenarios de negocio.
+  \item \textbf{Verificaciones realizadas a mano por el equipo:}
+  \begin{enumerate}
+    \item \textbf{Reproducibilidad en ambiente limpio:} Ejecución manual de punta a punta del repositorio en un workspace independiente de Databricks Free Edition siguiendo únicamente el \texttt{README.md}, comprobando la aprobación de las 15 pruebas de calidad.
+    \item \textbf{Conciliación numérica:} Contraste manual de cada cifra citada en el informe, en la bitácora y en la presentación contra las salidas automatizadas de \texttt{E2/output/cifras.md}, \texttt{cobertura.md} y las vistas en vivo del tablero.
+    \item \textbf{Auditoría de consistencia y fuentes:} Revisión línea por línea de las reglas únicas (período, corte, litros por caja y fechas de conversión) en todas las secciones, y cotejo literal de las citas de la contraparte contra las actas y transcripciones del caso.
+  \end{enumerate}
+\end{itemize}

@@ -1,0 +1,57 @@
+% Sección E · Caso de negocio, recomendación y plan de adopción (15 %). Extensión: 2 páginas.
+
+\section{Caso de negocio, recomendación y plan de adopción}
+\label{sec:negocio}
+
+\paragraph{Contexto histórico frente a valor accionable.}
+En la Entrega~1 se estimó que el cambio de mezcla ocurrido en el segundo semestre de 2025 equivalió a CLP~2.961~millones en ingreso de exportación (CLP~1.664~millones medidos en margen bruto de producto). Sin embargo, esa cifra describe un resultado pasado y no constituye una decisión operativa. Para habilitar una decisión gerencial, valorizamos cada punto porcentual de mezcla futura en \textbf{pesos de margen bruto de producto} (ingreso neto menos costo de producto, sin incluir flete internacional ni aranceles; supuesto~S16), sobre el volumen anual de exportación de 2025 (11,44~millones de litros; 1,27~millones de cajas de 9,0\,L):
+\begin{itemize}\setlength\itemsep{2pt}
+  \item \textbf{Sustitución de Varietal por Gran Reserva:} Cada punto porcentual adicional de Gran Reserva en reemplazo de Varietal (márgenes unitarios de 3.997 y 911\,CLP/L, respectivamente) genera \textbf{CLP~353~millones} de margen bruto adicional al año con tipo de cambio a fecha de factura, equivalente a \textbf{CLP~27.766 por cada caja} desplazada (12.709 cajas por punto).
+  \item \textbf{Sustitución de Reserva por Gran Reserva:} Si el desplazamiento proviene de Reserva (margen de 2.092\,CLP/L), cada punto aporta \textbf{CLP~218~millones} anuales (CLP~17.145 por caja).
+  \item \textbf{Sensibilidad cambiaria:} Al convertir con fecha estimada de cobranza ($+60$ días hemisferio sur, $+90$ norte), el valor por punto pasa de CLP~353~millones a \textbf{CLP~338~millones} al año (CLP~26.566 por caja). La caída de 4,2\,\% no altera la conveniencia económica de la decisión.
+\end{itemize}
+
+\paragraph{Recomendación accionable, costo y punto de equilibrio.}
+\begin{quote}
+\textbf{Decisión recomendada:} Fijar una meta comercial de incrementar en \textbf{+2,0 puntos porcentuales} la participación de Gran Reserva sobre los litros totales de exportación para 2026 (pasando del 32,5\,\% registrado en el segundo semestre de 2025 al 34,5\,\%) en reemplazo de Varietal, focalizada en los mercados clasificados como \emph{recomendación} por el tablero. Esta meta genera un retorno esperado de \textbf{CLP~706~millones} de margen bruto anual (CLP~676~millones a fecha de cobranza), con un costo estimado de \textbf{CLP~127,1~millones} al año, y es decidida y monitoreada mensualmente por la \textbf{Gerencia Comercial} utilizando el tablero de Databricks.
+\end{quote}
+
+\noindent Para alcanzar los $+2,0$\,pp (25.418 cajas incrementales de Gran Reserva), se evalúan dos palancas operativas bajo el supuesto de volumen total y márgenes unitarios constantes (S15 y S18):
+\begin{enumerate}\setlength\itemsep{2pt}
+  \item \textbf{Esquema de incentivos comerciales por caja (palanca principal):} Asignar un bono variable de \textbf{CLP~5.000 por caja incremental} de Gran Reserva colocada sobre la línea base semestral (equivalente al 18,0\,\% del margen incremental por caja). Para la meta de $+2,0$\,pp (25.418 cajas), el desembolso anual es de \textbf{CLP~127,1~millones}. El \textbf{punto de equilibrio} se alcanza desplazando apenas \textbf{4.578 cajas} en el año (\textbf{+0,36 puntos porcentuales} de mezcla); cualquier avance por sobre ese umbral genera margen neto positivo, siempre que el costo de incentivo por caja se mantenga bajo el techo de CLP~27.766.
+  \item \textbf{Priorización de asignación de stock y control de descuentos (costo marginal cero):} Reasignar disponibilidad de añadas de Gran Reserva hacia los mercados con mayor tracción demostrada (como Brasil, donde subió de 22,7\,\% a 31,5\,\%, o Japón, $+12,3$\,pp) y revisar en Países Bajos el impacto del descuento comercial vigente (donde el margen cae a 41,2\,\% y 1.720\,CLP/L frente al promedio de 47,25\,\% del universo).
+\end{enumerate}
+
+\paragraph{Prueba ácida y proceso reemplazado.}
+\begin{itemize}\setlength\itemsep{2pt}
+  \item \textbf{Prueba ácida:} (1)~\emph{Qué decisión habilita:} fijar, ajustar y monitorear la meta mensual de mezcla por \textit{tier} y mercado, además de validar si un mercado cumple condiciones de recomendación o requiere investigación comercial. (2)~\emph{Quién la toma:} la Gerencia Comercial en conjunto con Operaciones. (3)~\emph{Con qué frecuencia:} una vez al mes, tras el cierre contable de facturación.
+  \item \textbf{Qué reemplaza y horas liberadas:} Sustituye la planilla manual en Excel que el equipo de Comercial arma mensualmente descargando exportaciones del ERP y cruzándolas sin conciliación entre cajas y litros (hallazgo C9). Automatizar esta consolidación elimina reprocesos de cuadratura y libera aproximadamente \textbf{16 horas-persona al mes} (192 horas al año; supuesto~S18), redirigiendo ese tiempo desde la preparación de datos hacia el análisis de márgenes por mercado.
+\end{itemize}
+
+\paragraph{Plan de adopción.}
+Para evitar que el prototipo quede sin uso tras el cierre del proyecto, se establece un plan operativo de adopción en cinco definiciones concretas (Tabla~\ref{tab:adopcion}):
+
+\begin{table}[!htbp]
+\centering\small
+\caption{Plan de adopción operativa del prototipo en Viña Vallehondo.}
+\label{tab:adopcion}
+\begin{tabular}{@{}p{3.4cm} p{11.6cm}@{}}
+\toprule
+\textbf{Dimensión} & \textbf{Definición operativa} \\
+\midrule
+\textbf{Primer usuario} & Gerente Comercial y analista de control de gestión comercial en la reunión mensual de cierre (primer ciclo: cierre de diciembre de 2025). \\
+\midrule
+\textbf{Barrera de uso y qué protege} & Desconfianza frente a diferencias entre el reporte histórico en cajas y la cifra en litros/margen, sumada a la comodidad de mantener la planilla Excel propia (protege su control sobre el número reportado al directorio). Se mitiga mostrando en la segunda pantalla la conciliación transparente y las 15 pruebas de calidad en verde. \\
+\midrule
+\textbf{Métrica de adopción y plazo} & Porcentaje de reuniones mensuales de cierre en que la meta de mezcla se revisa directamente sobre el tablero publicado, y reducción a cero de planillas paralelas de cálculo de precio medio; medido trimestralmente entre \textbf{diciembre de 2025 y febrero de 2026} (meta: 3 de 3 reuniones). \\
+\midrule
+\textbf{Sostenibilidad y dueño} & La \textbf{Gerencia Comercial} asume como dueña del dato y del acuerdo de servicio (frescura mensual hasta el 5.\textsuperscript{o} día hábil, completitud $\ge 98\,\%$), apoyada por el encargado de TI/datos para ejecutar el \textit{job} mensual (\texttt{correr\_e2}) y actualizar el respaldo del tipo de cambio si la API externa falla. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Evaluación de la contraparte.}
+Al consultar sobre la utilidad práctica del tablero para la toma de decisiones comerciales (\emph{«¿Le sirve para decidir?»}), se recoge la siguiente evaluación literal:
+\begin{quote}
+\emph{«[COMPLETAR: pegar aquí la cita textual de la contraparte del hilo de correo si respondió, o bien la respuesta textual registrada en la prueba de uso de la Sección~D marcada como (V)]»} (V).
+\end{quote}

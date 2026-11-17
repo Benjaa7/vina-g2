@@ -1,0 +1,16 @@
+\section{Calidad declarada, consistencia y reproducibilidad}
+\label{sec:calidad}
+
+\paragraph{Cobertura de datos y comparación con la Entrega~1.}
+De las 13.983 líneas registradas en el ERP (\texttt{origen\_vina.sqlite}), se excluyeron 221 por problemas de datos (\textbf{1,58\,\%} de las filas y 1,55\,\% de los litros): 138 registros duplicados y 83 facturas emitidas en 2026, fuera del período de análisis. Otras 3.090 ventas (22,10\,\%) corresponden al canal nacional y salen por alcance. El universo de la métrica mantiene exactamente las mismas \textbf{10.672 líneas} de exportación de 2025 que en la Entrega~1 (76,32\,\% del total registrado), sin cambios en los criterios de exclusión. Para la medida nueva de margen bruto, el \textbf{82,8\,\%} de los litros del universo cuenta con costo real en el maestro de productos; el 17,2\,\% restante (1.852 líneas) tiene costo imputado determinísticamente por su \textit{tier} y añada (supuesto S5).
+
+\paragraph{Resultado de las pruebas de calidad (última corrida).}
+En la corrida oficial de producción en Databricks (\texttt{run\_id: 968992018936015}) se ejecutaron \textbf{15 pruebas automatizadas} (10 bloqueantes que protegen fuentes y métrica, y 5 de aviso operacional), con un \textbf{100\,\% de aprobación} (15 de 15 en verde):
+\begin{itemize}
+  \item \textbf{Integridad y conciliación:} 0 filas fallidas en unicidad de \texttt{venta\_id} tras deduplicar, 0 huérfanos en las cuatro dimensiones y conciliación exacta entre plata y oro (13.845 líneas y 15.345.639\,L totales).
+  \item \textbf{Resiliencia ante falla externa:} La prueba del tipo de cambio verificó cobertura completa entre 600 y 1.200\,CLP/USD. La API de \texttt{mindicador.cl} respondió en 10,1\,s para 2025, pero arrojó \texttt{TimeoutError} al consultar 2026; la cadena activó automáticamente el respaldo versionado \texttt{dolar\_2026.json} y dejó la advertencia registrada.
+  \item \textbf{Acuerdo de servicio y control E1:} La completitud de ventas llegó a 99,0\,\% (umbral $\ge 98\,\%$), la cobertura de costo real a 82,8\,\% (umbral $\ge 80\,\%$) y las cifras de control reprodujeron exactamente los valores de la Entrega~1 (4,574 y 5,085\,USD/L) e idempotencia total frente a la corrida previa (USD 73.435.428,61).
+\end{itemize}
+
+\paragraph{Consistencia de reglas y bitácora.}
+Todas las definiciones del informe y del tablero comparten una única regla por concepto: período de facturas 2025 (S1: enero--junio; S2: julio--diciembre), corte al 31-12-2025, equivalencia de 9,0\,L por caja en ambos formatos, conversión principal a fecha de factura (y alternativa de cobranza a $+60$/$+90$ días), merma con signo negativo en litros e ingreso sin reverso de costo, y moneda vacía imputada por mercado. El detalle completo de supuestos con dueño y fecha individual se documenta en el Anexo~\ref{anexo:bitacora}, y el uso de inteligencia artificial junto a sus verificaciones manuales en el Anexo~\ref{anexo:ia}.

@@ -10,7 +10,9 @@ Misma pregunta de negocio que la E1: el precio promedio por litro de exportació
 
 El notebook crea (o actualiza) el job `vallehondo_e2` con los ocho pasos de la cadena, lo ejecuta en cómputo serverless, muestra las pruebas de calidad y las cifras del informe y, al final, publica el tablero e imprime su enlace. No hay que instalar nada ni configurar credenciales: las fuentes van en el repositorio (`E2/datos/raw/`) y el código se lee desde la carpeta Git.
 
-**Tiempo:** unos 6 minutos (5,5 el job y medio minuto publicar el tablero), medidos en una corrida de cero sobre un catálogo vacío.
+**Tiempo:** unos 6 minutos (5,5 el job y medio minuto publicar el tablero), medidos en una corrida de cero sobre un catálogo vacío. En una cuenta nueva la primera corrida tarda más: el 17 de noviembre, en un workspace recién creado con otra cuenta, el job esperó unos 6 minutos su primer cómputo serverless y la corrida completa demoró unos 14 (los pasos, 6,2 minutos).
+
+**Si la ventana «Create Git folder» se queda cargando:** en esa misma prueba quedó girando más de 10 minutos sin crear la carpeta. La creamos con la misma URL desde la API (`POST /api/2.0/repos` con `{"url": "https://github.com/Benjaa7/vina-g2", "provider": "gitHub", "path": "/Users/<su correo>/vina-g2"}`), o con la CLI: `databricks repos create https://github.com/Benjaa7/vina-g2 gitHub --path /Users/<su correo>/vina-g2`. Después se sigue igual, desde el paso 3.
 
 **Qué se espera ver al final:**
 
@@ -70,8 +72,8 @@ E2/
 
 Dos páginas:
 
-- **Respuesta:** precio por litro de cada semestre, cuánto del alza explica la mezcla, participación de gran reserva, valor en pesos de un punto de mezcla, el puente mezcla/precio/cruzado, la participación y el precio de cada tier, y la lectura por mercado. La lectura por mercado dice si es recomendación o hipótesis y por qué.
-- **Definición y calidad:** precio por tier y gran reserva mes a mes leídos directo de la metric view, las fórmulas, y las pruebas de la última corrida.
+- **Respuesta:** el alza del precio por litro en porcentaje, el precio de cada semestre, cuánto del alza explica la mezcla, la participación de gran reserva y el valor en pesos (MM CLP) de un punto de mezcla; un gráfico con lo que aportan mezcla, precio y cruzado junto al alza total; la participación y el precio de cada tier; y la lectura por mercado, que dice si es recomendación o hipótesis y por qué.
+- **Definición y calidad:** una tabla que compara USD y las tres fechas del dólar lado a lado (precio por litro, alza y parte de la mezcla), el precio por tier y la gran reserva mes a mes leídos directo de la metric view, las fórmulas y las pruebas de la última corrida.
 
 Los filtros permiten elegir la moneda y la fecha del dólar, las correcciones de datos, los litros por caja magnum y el mercado. Cada filtro siempre tiene un valor, así que una cifra nunca mezcla escenarios. El pie de cada página muestra la última actualización, las pruebas en verde, la fuente del dólar y el dueño del dato.
 

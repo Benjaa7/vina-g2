@@ -14,9 +14,11 @@ VERDE, AMBAR = "#2A9D8F", "#E9A23B"
 TIERS = ["Varietal", "Reserva", "Gran Reserva"]
 COLOR_TIER = [{"value": "Varietal", "color": TOSTADO}, {"value": "Reserva", "color": AZUL},
               {"value": "Gran Reserva", "color": VINO}]
-COLOR_SEM = [{"value": "1.er semestre", "color": GRIS}, {"value": "2.º semestre", "color": VINO}]
+COLOR_SEM = [{"value": "1.er sem.", "color": GRIS}, {"value": "2.º sem.", "color": VINO}]
+COLOR_APORTE = [{"value": "Mezcla", "color": VINO}, {"value": "Precio", "color": GRIS},
+                {"value": "Cruzado", "color": GRIS}, {"value": "Alza total", "color": AZUL}]
 
-ESC = ("WITH esc AS (SELECT DISTINCT correcciones, litros_caja_magnum, litros_caja_etiqueta, moneda_fecha, moneda "
+ESC = ("WITH esc AS (SELECT DISTINCT correcciones, litros_caja_magnum, litros_caja_etiqueta, moneda_fecha, moneda, orden_moneda "
        "FROM agg_escenarios)")
 CLAVE = "USING (correcciones, litros_caja_magnum, moneda_fecha)"
 
@@ -39,15 +41,15 @@ FROM v_descomposicion_total t JOIN esc e {CLAVE}
 WHERE {FILTRO_ESC} AND t.mercado = :mercado""", ["moneda", "correcciones", "litros", "mercado"]),
     "ds_puente": ("Puente mezcla / precio / cruzado", f"""{ESC}
 SELECT e.correcciones, e.litros_caja_etiqueta, e.moneda_fecha, t.mercado,
-       stack(3, 1, 'Mezcla', t.efecto_mezcla, 2, 'Precio', t.efecto_precio,
-             3, 'Cruzado', t.efecto_cruzado) AS (orden, componente, valor)
+       stack(4, 1, 'Mezcla', t.efecto_mezcla, 2, 'Precio', t.efecto_precio,
+             3, 'Cruzado', t.efecto_cruzado, 4, 'Alza total', t.precio_s2 - t.precio_s1) AS (orden, componente, valor)
 FROM v_descomposicion_total t JOIN esc e {CLAVE}
 WHERE {FILTRO_ESC} AND t.mercado = :mercado
 ORDER BY orden""", ["moneda", "correcciones", "litros", "mercado"]),
     "ds_tier": ("Participación y precio por tier", f"""{ESC}
 SELECT e.correcciones, e.litros_caja_etiqueta, e.moneda_fecha, d.mercado, d.tier,
-       stack(2, '1.er semestre', d.participacion_s1, d.precio_s1,
-                '2.º semestre', d.participacion_s2, d.precio_s2) AS (semestre, participacion, precio_litro)
+       stack(2, '1.er sem.', d.participacion_s1, d.precio_s1,
+                '2.º sem.', d.participacion_s2, d.precio_s2) AS (semestre, participacion, precio_litro)
 FROM v_descomposicion d JOIN esc e {CLAVE}
 WHERE {FILTRO_ESC} AND d.mercado = :mercado""", ["moneda", "correcciones", "litros", "mercado"]),
     "ds_mercados": ("Lectura por mercado", f"""{ESC}
@@ -80,6 +82,11 @@ GROUP BY ALL""", ["moneda", "correcciones", "litros"]),
 FROM mv_vallehondo
 WHERE {FILTRO_MV}
 GROUP BY ALL""", ["moneda", "correcciones", "litros"]),
+    "ds_monedas": ("El alza según la moneda y la fecha del dólar", f"""{ESC}
+SELECT e.moneda_fecha, e.orden_moneda, t.precio_s1, t.precio_s2, t.alza_pct, t.mezcla_pct_del_alza
+FROM v_descomposicion_total t JOIN esc e {CLAVE}
+WHERE {FILTRO_ESC_SIN_MONEDA} AND t.mercado = 'Todos los mercados'
+ORDER BY e.orden_moneda""", ["correcciones", "litros"]),
     "ds_pruebas": ("Pruebas de calidad de la última corrida", """SELECT capa, prueba, severidad, resultado, filas_fallan, accion, detalle
 FROM v_pruebas
 ORDER BY CASE resultado WHEN 'falla' THEN 0 ELSE 1 END, capa, prueba""", []),
@@ -161,7 +168,8 @@ def barras(nombre, ds, y, y_nombre, formato, titulo, descripcion, p):
                 "y": {"fieldName": f"sum({y})", "displayName": y_nombre, "scale": {"type": "quantitative"},
                       "format": formato},
                 "color": {"fieldName": "semestre", "displayName": "Semestre",
-                          "scale": {"type": "categorical", "mappings": COLOR_SEM}},
+                          "scale": {"type": "categorical", "mappings": COLOR_SEM},
+                          "legend": {"hide": True}},
                 "label": {"show": True}},
             "mark": {"layout": "group"}, "frame": marco(titulo, descripcion)}
     return {"widget": {"name": nombre, "queries": consulta(ds, campos), "spec": spec}, "position": p}
@@ -224,41 +232,48 @@ P1 = [texto("titulo", [
     "Facturas de exportación 2025; primer semestre = enero a junio, segundo = julio a diciembre. "
     "Con la definición principal, casi toda el alza viene de vender más **gran reserva**: el precio dentro de "
     "cada tier no subió. Cambie la moneda, la fecha del dólar, las correcciones o los litros por caja y todo se "
-    "recalcula con la misma definición (`oro.mv_vallehondo`)."], pos(0, 0, 12, 2))]
+    "recalcula. Al final, la tabla dice si cada mercado es recomendación o hipótesis; la pestaña "
+    "**Definición y calidad** compara las monedas y fechas del dólar lado a lado."], pos(0, 0, 12, 2))]
 P1 += filtros_escenario("f1", ["ds_resumen", "ds_puente", "ds_tier", "ds_mercados"],
                         ["ds_resumen", "ds_puente", "ds_tier", "ds_mercados", "ds_valor"], 2,
                         con_mercado=["ds_resumen", "ds_puente", "ds_tier"])
 P1 += [
+    contador("c_alza", "ds_resumen", "alza_pct", "Alza del precio por litro",
+             "2.º semestre contra el 1.º, en la moneda elegida.", fmt_pct(1), pos(0, 4, 2, 5)),
     contador("c_precio", "ds_resumen", "precio_s2", "Precio medio por litro, 2.º semestre",
-             "Comparado con el 1.er semestre. USD/L o CLP/L según la moneda elegida.", fmt_num(2, True),
-             pos(0, 4, 3, 3), meta="precio_s1"),
+             "Abajo, el 1.er semestre. USD/L o CLP/L según la moneda.", fmt_num(2, True),
+             pos(2, 4, 3, 5), meta="precio_s1"),
     contador("c_mezcla", "ds_resumen", "mezcla_pct_del_alza", "Parte del alza que explica la mezcla",
-             "El resto: precio dentro de cada tier y efecto cruzado (ver el puente).", fmt_pct(0), pos(3, 4, 3, 3)),
-    contador("c_gr", "ds_resumen", "gran_reserva_s2", "Gran reserva, % de los litros (2.º semestre)",
-             "Comparado con el 1.er semestre.", fmt_pct(1), pos(6, 4, 3, 3), meta="gran_reserva_s1"),
-    contador("c_valor", "ds_valor", "valor_punto_varietal_mm", "Valor de 1 punto de gran reserva",
-             "Margen bruto al año si 1 % de los litros pasa de varietal a gran reserva (CLP, dólar de la factura). "
-             "Total exportación: no cambia con el mercado.", fmt_num(0), pos(9, 4, 3, 3),
-             filtros=["`fecha_dolar` = 'CLP · fecha de factura'"], plantilla="{{@formatted}} MM"),
+             "Sobre 100 % porque el precio restó.", fmt_pct(0), pos(5, 4, 2, 5)),
+    contador("c_gr", "ds_resumen", "gran_reserva_s2", "Gran reserva, % de los litros, 2.º semestre",
+             "Abajo, el 1.er semestre.", fmt_pct(1), pos(7, 4, 2, 5), meta="gran_reserva_s1"),
+    contador("c_valor", "ds_valor", "valor_punto_varietal_mm", "Valor de 1 punto de gran reserva (MM CLP)",
+             "Margen extra al año, en millones de pesos, si 1 % de los litros pasa de varietal a gran reserva.", fmt_num(0),
+             pos(9, 4, 3, 5), filtros=["`fecha_dolar` = 'CLP · fecha de factura'"], plantilla="{{@formatted}} MM"),
     {"widget": {"name": "w_puente",
                 "queries": consulta("ds_puente", [campo("componente"), campo("sum(valor)", "SUM(`valor`)")]),
-                "spec": {"version": 3, "widgetType": "waterfall",
+                "spec": {"version": 3, "widgetType": "bar",
                          "encodings": {
                              "x": {"fieldName": "componente", "displayName": "Componente",
                                    "scale": {"type": "categorical", "sort": {"by": "custom-order", "orderedValues": [
-                                       "Mezcla", "Precio", "Cruzado"]}}},
-                             "y": {"fieldName": "sum(valor)", "displayName": "Aporte al alza por litro",
+                                       "Mezcla", "Precio", "Cruzado", "Alza total"]}}},
+                             "y": {"fieldName": "sum(valor)", "displayName": "Por litro, en la moneda elegida",
                                    "scale": {"type": "quantitative"}, "format": fmt_num(3)},
+                             "color": {"fieldName": "componente", "displayName": "Componente",
+                                       "scale": {"type": "categorical", "mappings": COLOR_APORTE},
+                                       "legend": {"hide": True}},
                              "label": {"show": True}},
                          "frame": marco("¿De dónde sale el alza del precio por litro?",
-                                        "Mezcla: más litros de tiers caros. Precio: cambio del precio dentro de cada tier. Aporte a la diferencia S2 − S1, por litro, en la moneda elegida.")}},
-     "position": pos(0, 7, 4, 6)},
+                                        "Mezcla, precio y cruzado suman el alza total. La mezcla aporta más que el total porque el precio y el cruzado restan.")}},
+     "position": pos(0, 9, 4, 6)},
     barras("w_mezcla", "ds_tier", "participacion", "% de los litros", fmt_pct(0),
-           "Participación de cada tier en los litros", "La mezcla: qué parte de los litros vendidos es de cada tier.",
-           pos(4, 7, 4, 6)),
+           "Participación de cada tier en los litros",
+           "Qué parte de los litros es de cada tier. Gris: 1.er semestre; vino: 2.º semestre.",
+           pos(4, 9, 4, 6)),
     barras("w_precio_tier", "ds_tier", "precio_litro", "Precio por litro", fmt_num(2),
-           "Precio por litro dentro de cada tier", "El precio: cuánto se cobró por litro en cada tier.",
-           pos(8, 7, 4, 6)),
+           "Precio por litro dentro de cada tier",
+           "Cuánto se cobró por litro en cada tier. Gris: 1.er semestre; vino: 2.º semestre.",
+           pos(8, 9, 4, 6)),
     tabla("t_valor", "ds_valor",
           [("fecha_dolar", "Dólar a la"), ("valor_punto_varietal_mm", "1 punto GR en vez de varietal (MM CLP/año)", fmt_num(0)),
            ("valor_punto_reserva_mm", "1 punto GR en vez de reserva (MM CLP/año)", fmt_num(0)),
@@ -266,7 +281,7 @@ P1 += [
            ("cajas_por_punto", "Cajas que son 1 punto", fmt_num(0))],
           "Cuánto vale mover la mezcla (margen bruto, CLP)",
           "Una acción para vender más gran reserva se paga si su costo anual es menor que los puntos que mueve por el valor de un punto.",
-          pos(0, 13, 12, 3)),
+          pos(0, 15, 12, 3)),
     tabla("t_mercados", "ds_mercados",
           [("mercado", "Mercado"), ("lectura", "Lectura"), ("alza_pct", "Alza precio/L", fmt_pct(1)),
            ("mezcla_pct_del_alza", "Mezcla, % del alza", fmt_pct(0)), ("gran_reserva_s1", "GR 1.er sem.", fmt_pct(0)),
@@ -274,12 +289,12 @@ P1 += [
            ("precio_s2", "Precio/L 2.º sem.", fmt_num(2)), ("alza_margen_litro_pct", "Alza margen/L", fmt_pct(1)),
            ("cobertura_costo_real", "Litros con costo real", fmt_pct(0)), ("lineas", "Líneas", fmt_num(0)),
            ("hemisferio", "Hemisferio"), ("motivo_hipotesis", "Por qué es hipótesis")],
-          "Por mercado: ¿se repite el patrón?",
+          "Por mercado: ¿recomendación o hipótesis?",
           "Recomendación si el precio por litro sube, la mezcla explica al menos 80 % del alza, gran reserva sube al menos "
           "5 puntos, al menos 80 % de los litros tiene costo real y hay al menos 300 líneas. Si falla algo, es hipótesis.",
-          pos(0, 16, 12, 7)),
+          pos(0, 18, 12, 7)),
 ]
-e1 = json.loads(json.dumps(ESTADO)); e1["position"] = pos(0, 23, 12, 3)
+e1 = json.loads(json.dumps(ESTADO)); e1["position"] = pos(0, 25, 12, 3)
 P1.append(e1)
 
 # --------------------------------------------------------------------------------------------- página 2
@@ -302,8 +317,15 @@ DEF = [
 P2 = [texto("titulo2", ["## Definición y calidad del dato\n", "\n",
                         "Los gráficos de esta página leen directo de la metric view. Abajo, las pruebas que corren "
                         "antes de publicar: si una bloqueante falla, el oro no se actualiza."], pos(0, 0, 12, 2))]
-P2 += filtros_escenario("f2", ["ds_mes_tier", "ds_mes"], ["ds_mes_tier", "ds_mes"], 2)
+P2 += filtros_escenario("f2", ["ds_mes_tier", "ds_mes"], ["ds_mes_tier", "ds_mes", "ds_monedas"], 2)
 P2 += [
+    tabla("t_monedas", "ds_monedas",
+          [("moneda_fecha", "Moneda y fecha del dólar"), ("precio_s1", "Precio/L 1.er sem.", fmt_num(2)),
+           ("precio_s2", "Precio/L 2.º sem.", fmt_num(2)), ("alza_pct", "Alza del precio por litro", fmt_pct(1)),
+           ("mezcla_pct_del_alza", "Mezcla, % del alza", fmt_pct(0))],
+          "La decisión de definición: ¿con qué dólar se convierte?",
+          "Todos los mercados. En dólares el alza no depende de la fecha; en pesos, sí. La fecha de embarque no es confiable: en 30 % de las líneas es anterior a la factura.",
+          pos(0, 4, 12, 4)),
     {"widget": {"name": "w_precio_mes",
                 "queries": consulta("ds_mes_tier", [campo("monthly(mes)", 'DATE_TRUNC("MONTH", `mes`)'), campo("tier"),
                                                     campo("min(precio_por_litro)", "MIN(`precio_por_litro`)")]),
@@ -316,7 +338,7 @@ P2 += [
                                        "scale": {"type": "categorical", "mappings": COLOR_TIER}}},
                          "frame": marco("Precio por litro de cada tier, mes a mes",
                                         "Todos los mercados. MEASURE(precio_por_litro) por tier.")}},
-     "position": pos(0, 4, 6, 6)},
+     "position": pos(0, 8, 6, 6)},
     {"widget": {"name": "w_gr_mes",
                 "queries": consulta("ds_mes", [campo("monthly(mes)", 'DATE_TRUNC("MONTH", `mes`)'),
                                                campo("min(participacion_gran_reserva)", "MIN(`participacion_gran_reserva`)")]),
@@ -331,16 +353,16 @@ P2 += [
                              "color": {"value": GRIS}}}],
                          "frame": marco("Gran reserva, % de los litros, mes a mes",
                                         "Todos los mercados. MEASURE(participacion_gran_reserva).")}},
-     "position": pos(6, 4, 6, 6)},
-    texto("definicion", DEF, pos(0, 10, 5, 9)),
+     "position": pos(6, 8, 6, 6)},
+    texto("definicion", DEF, pos(0, 14, 5, 9)),
     tabla("t_pruebas", "ds_pruebas",
           [("resultado", "Resultado"), ("severidad", "Severidad"), ("capa", "Capa"), ("prueba", "Prueba"),
            ("filas_fallan", "Filas que fallan", fmt_num(0)), ("accion", "Qué se hizo"), ("detalle", "Detalle")],
           "Pruebas de calidad de la última corrida",
           "Bloquea: si falla, el job se detiene y el tablero sigue mostrando el último oro bueno. Avisa: se publica y se informa.",
-          pos(5, 10, 7, 9)),
+          pos(5, 14, 7, 9)),
 ]
-e2 = json.loads(json.dumps(ESTADO)); e2["position"] = pos(0, 19, 12, 3)
+e2 = json.loads(json.dumps(ESTADO)); e2["position"] = pos(0, 23, 12, 3)
 P2.append(e2)
 
 TABLERO = {

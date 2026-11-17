@@ -4,7 +4,7 @@
    "name": "ds_resumen",
    "displayName": "Resumen por escenario y mercado",
    "queryLines": [
-    "WITH esc AS (SELECT DISTINCT correcciones, litros_caja_magnum, litros_caja_etiqueta, moneda_fecha, moneda FROM agg_escenarios)\n",
+    "WITH esc AS (SELECT DISTINCT correcciones, litros_caja_magnum, litros_caja_etiqueta, moneda_fecha, moneda, orden_moneda FROM agg_escenarios)\n",
     "SELECT e.correcciones, e.litros_caja_etiqueta, e.moneda_fecha, e.moneda, t.mercado,\n",
     "       t.precio_s1, t.precio_s2, t.alza_pct, t.mezcla_pct_del_alza, t.precio_pct_del_alza,\n",
     "       t.gran_reserva_s1, t.gran_reserva_s2\n",
@@ -80,10 +80,10 @@
    "name": "ds_puente",
    "displayName": "Puente mezcla / precio / cruzado",
    "queryLines": [
-    "WITH esc AS (SELECT DISTINCT correcciones, litros_caja_magnum, litros_caja_etiqueta, moneda_fecha, moneda FROM agg_escenarios)\n",
+    "WITH esc AS (SELECT DISTINCT correcciones, litros_caja_magnum, litros_caja_etiqueta, moneda_fecha, moneda, orden_moneda FROM agg_escenarios)\n",
     "SELECT e.correcciones, e.litros_caja_etiqueta, e.moneda_fecha, t.mercado,\n",
-    "       stack(3, 1, 'Mezcla', t.efecto_mezcla, 2, 'Precio', t.efecto_precio,\n",
-    "             3, 'Cruzado', t.efecto_cruzado) AS (orden, componente, valor)\n",
+    "       stack(4, 1, 'Mezcla', t.efecto_mezcla, 2, 'Precio', t.efecto_precio,\n",
+    "             3, 'Cruzado', t.efecto_cruzado, 4, 'Alza total', t.precio_s2 - t.precio_s1) AS (orden, componente, valor)\n",
     "FROM v_descomposicion_total t JOIN esc e USING (correcciones, litros_caja_magnum, moneda_fecha)\n",
     "WHERE e.moneda_fecha = :moneda AND e.correcciones = :correcciones AND e.litros_caja_etiqueta = :litros AND t.mercado = :mercado\n",
     "ORDER BY orden\n"
@@ -157,10 +157,10 @@
    "name": "ds_tier",
    "displayName": "Participación y precio por tier",
    "queryLines": [
-    "WITH esc AS (SELECT DISTINCT correcciones, litros_caja_magnum, litros_caja_etiqueta, moneda_fecha, moneda FROM agg_escenarios)\n",
+    "WITH esc AS (SELECT DISTINCT correcciones, litros_caja_magnum, litros_caja_etiqueta, moneda_fecha, moneda, orden_moneda FROM agg_escenarios)\n",
     "SELECT e.correcciones, e.litros_caja_etiqueta, e.moneda_fecha, d.mercado, d.tier,\n",
-    "       stack(2, '1.er semestre', d.participacion_s1, d.precio_s1,\n",
-    "                '2.º semestre', d.participacion_s2, d.precio_s2) AS (semestre, participacion, precio_litro)\n",
+    "       stack(2, '1.er sem.', d.participacion_s1, d.precio_s1,\n",
+    "                '2.º sem.', d.participacion_s2, d.precio_s2) AS (semestre, participacion, precio_litro)\n",
     "FROM v_descomposicion d JOIN esc e USING (correcciones, litros_caja_magnum, moneda_fecha)\n",
     "WHERE e.moneda_fecha = :moneda AND e.correcciones = :correcciones AND e.litros_caja_etiqueta = :litros AND d.mercado = :mercado\n"
    ],
@@ -233,7 +233,7 @@
    "name": "ds_mercados",
    "displayName": "Lectura por mercado",
    "queryLines": [
-    "WITH esc AS (SELECT DISTINCT correcciones, litros_caja_magnum, litros_caja_etiqueta, moneda_fecha, moneda FROM agg_escenarios)\n",
+    "WITH esc AS (SELECT DISTINCT correcciones, litros_caja_magnum, litros_caja_etiqueta, moneda_fecha, moneda, orden_moneda FROM agg_escenarios)\n",
     "SELECT e.correcciones, e.litros_caja_etiqueta, e.moneda_fecha, m.mercado, m.zona, m.hemisferio, m.lectura,\n",
     "       m.motivo_hipotesis, m.alza_pct, m.mezcla_pct_del_alza, m.gran_reserva_s1, m.gran_reserva_s2,\n",
     "       m.precio_s1, m.precio_s2, m.margen_litro_s1, m.margen_litro_s2, m.alza_margen_litro_pct,\n",
@@ -296,7 +296,7 @@
    "name": "ds_valor",
    "displayName": "Valor de un punto de mezcla (CLP)",
    "queryLines": [
-    "WITH esc AS (SELECT DISTINCT correcciones, litros_caja_magnum, litros_caja_etiqueta, moneda_fecha, moneda FROM agg_escenarios)\n",
+    "WITH esc AS (SELECT DISTINCT correcciones, litros_caja_magnum, litros_caja_etiqueta, moneda_fecha, moneda, orden_moneda FROM agg_escenarios)\n",
     "SELECT e.correcciones, e.litros_caja_etiqueta, v.moneda_fecha AS fecha_dolar,\n",
     "       v.valor_punto_vs_varietal / 1e6 AS valor_punto_varietal_mm,\n",
     "       v.valor_punto_vs_reserva / 1e6 AS valor_punto_reserva_mm,\n",
@@ -473,6 +473,51 @@
    ]
   },
   {
+   "name": "ds_monedas",
+   "displayName": "El alza según la moneda y la fecha del dólar",
+   "queryLines": [
+    "WITH esc AS (SELECT DISTINCT correcciones, litros_caja_magnum, litros_caja_etiqueta, moneda_fecha, moneda, orden_moneda FROM agg_escenarios)\n",
+    "SELECT e.moneda_fecha, e.orden_moneda, t.precio_s1, t.precio_s2, t.alza_pct, t.mezcla_pct_del_alza\n",
+    "FROM v_descomposicion_total t JOIN esc e USING (correcciones, litros_caja_magnum, moneda_fecha)\n",
+    "WHERE e.correcciones = :correcciones AND e.litros_caja_etiqueta = :litros AND t.mercado = 'Todos los mercados'\n",
+    "ORDER BY e.orden_moneda\n"
+   ],
+   "catalog": "vallehondo",
+   "schema": "oro",
+   "parameters": [
+    {
+     "displayName": "correcciones",
+     "keyword": "correcciones",
+     "dataType": "STRING",
+     "defaultSelection": {
+      "values": {
+       "dataType": "STRING",
+       "values": [
+        {
+         "value": "Con todas las correcciones (principal)"
+        }
+       ]
+      }
+     }
+    },
+    {
+     "displayName": "litros",
+     "keyword": "litros",
+     "dataType": "STRING",
+     "defaultSelection": {
+      "values": {
+       "dataType": "STRING",
+       "values": [
+        {
+         "value": "9,0 L (principal)"
+        }
+       ]
+      }
+     }
+    }
+   ]
+  },
+  {
    "name": "ds_pruebas",
    "displayName": "Pruebas de calidad de la última corrida",
    "queryLines": [
@@ -534,7 +579,7 @@
        "lines": [
         "## ¿El alza del precio por litro de exportación fue por precio o por mezcla?\n",
         "\n",
-        "Facturas de exportación 2025; primer semestre = enero a junio, segundo = julio a diciembre. Con la definición principal, casi toda el alza viene de vender más **gran reserva**: el precio dentro de cada tier no subió. Cambie la moneda, la fecha del dólar, las correcciones o los litros por caja y todo se recalcula con la misma definición (`oro.mv_vallehondo`)."
+        "Facturas de exportación 2025; primer semestre = enero a junio, segundo = julio a diciembre. Con la definición principal, casi toda el alza viene de vender más **gran reserva**: el precio dentro de cada tier no subió. Cambie la moneda, la fecha del dólar, las correcciones o los litros por caja y todo se recalcula. Al final, la tabla dice si cada mercado es recomendación o hipótesis; la pestaña **Definición y calidad** compara las monedas y fechas del dólar lado a lado."
        ]
       }
      },
@@ -1056,6 +1101,54 @@
     },
     {
      "widget": {
+      "name": "c_alza",
+      "queries": [
+       {
+        "name": "main_query",
+        "query": {
+         "datasetName": "ds_resumen",
+         "fields": [
+          {
+           "name": "min(alza_pct)",
+           "expression": "MIN(`alza_pct`)"
+          }
+         ],
+         "disaggregated": false
+        }
+       }
+      ],
+      "spec": {
+       "version": 2,
+       "widgetType": "counter",
+       "encodings": {
+        "value": {
+         "fieldName": "min(alza_pct)",
+         "format": {
+          "type": "number-percent",
+          "decimalPlaces": {
+           "type": "max",
+           "places": 1
+          }
+         }
+        }
+       },
+       "frame": {
+        "showTitle": true,
+        "title": "Alza del precio por litro",
+        "showDescription": true,
+        "description": "2.º semestre contra el 1.º, en la moneda elegida."
+       }
+      }
+     },
+     "position": {
+      "x": 0,
+      "y": 4,
+      "width": 2,
+      "height": 5
+     }
+    },
+    {
+     "widget": {
       "name": "c_precio",
       "queries": [
        {
@@ -1108,15 +1201,15 @@
         "showTitle": true,
         "title": "Precio medio por litro, 2.º semestre",
         "showDescription": true,
-        "description": "Comparado con el 1.er semestre. USD/L o CLP/L según la moneda elegida."
+        "description": "Abajo, el 1.er semestre. USD/L o CLP/L según la moneda."
        }
       }
      },
      "position": {
-      "x": 0,
+      "x": 2,
       "y": 4,
       "width": 3,
-      "height": 3
+      "height": 5
      }
     },
     {
@@ -1156,15 +1249,15 @@
         "showTitle": true,
         "title": "Parte del alza que explica la mezcla",
         "showDescription": true,
-        "description": "El resto: precio dentro de cada tier y efecto cruzado (ver el puente)."
+        "description": "Sobre 100 % porque el precio restó."
        }
       }
      },
      "position": {
-      "x": 3,
+      "x": 5,
       "y": 4,
-      "width": 3,
-      "height": 3
+      "width": 2,
+      "height": 5
      }
     },
     {
@@ -1217,17 +1310,17 @@
        },
        "frame": {
         "showTitle": true,
-        "title": "Gran reserva, % de los litros (2.º semestre)",
+        "title": "Gran reserva, % de los litros, 2.º semestre",
         "showDescription": true,
-        "description": "Comparado con el 1.er semestre."
+        "description": "Abajo, el 1.er semestre."
        }
       }
      },
      "position": {
-      "x": 6,
+      "x": 7,
       "y": 4,
-      "width": 3,
-      "height": 3
+      "width": 2,
+      "height": 5
      }
     },
     {
@@ -1272,9 +1365,9 @@
        },
        "frame": {
         "showTitle": true,
-        "title": "Valor de 1 punto de gran reserva",
+        "title": "Valor de 1 punto de gran reserva (MM CLP)",
         "showDescription": true,
-        "description": "Margen bruto al año si 1 % de los litros pasa de varietal a gran reserva (CLP, dólar de la factura). Total exportación: no cambia con el mercado."
+        "description": "Margen extra al año, en millones de pesos, si 1 % de los litros pasa de varietal a gran reserva."
        }
       }
      },
@@ -1282,7 +1375,7 @@
       "x": 9,
       "y": 4,
       "width": 3,
-      "height": 3
+      "height": 5
      }
     },
     {
@@ -1309,7 +1402,7 @@
       ],
       "spec": {
        "version": 3,
-       "widgetType": "waterfall",
+       "widgetType": "bar",
        "encodings": {
         "x": {
          "fieldName": "componente",
@@ -1321,14 +1414,15 @@
            "orderedValues": [
             "Mezcla",
             "Precio",
-            "Cruzado"
+            "Cruzado",
+            "Alza total"
            ]
           }
          }
         },
         "y": {
          "fieldName": "sum(valor)",
-         "displayName": "Aporte al alza por litro",
+         "displayName": "Por litro, en la moneda elegida",
          "scale": {
           "type": "quantitative"
          },
@@ -1341,6 +1435,34 @@
           }
          }
         },
+        "color": {
+         "fieldName": "componente",
+         "displayName": "Componente",
+         "scale": {
+          "type": "categorical",
+          "mappings": [
+           {
+            "value": "Mezcla",
+            "color": "#7B2D43"
+           },
+           {
+            "value": "Precio",
+            "color": "#9AA5B1"
+           },
+           {
+            "value": "Cruzado",
+            "color": "#9AA5B1"
+           },
+           {
+            "value": "Alza total",
+            "color": "#3C6E91"
+           }
+          ]
+         },
+         "legend": {
+          "hide": true
+         }
+        },
         "label": {
          "show": true
         }
@@ -1349,13 +1471,13 @@
         "showTitle": true,
         "title": "¿De dónde sale el alza del precio por litro?",
         "showDescription": true,
-        "description": "Mezcla: más litros de tiers caros. Precio: cambio del precio dentro de cada tier. Aporte a la diferencia S2 − S1, por litro, en la moneda elegida."
+        "description": "Mezcla, precio y cruzado suman el alza total. La mezcla aporta más que el total porque el precio y el cruzado restan."
        }
       }
      },
      "position": {
       "x": 0,
-      "y": 7,
+      "y": 9,
       "width": 4,
       "height": 6
      }
@@ -1426,14 +1548,17 @@
           "type": "categorical",
           "mappings": [
            {
-            "value": "1.er semestre",
+            "value": "1.er sem.",
             "color": "#9AA5B1"
            },
            {
-            "value": "2.º semestre",
+            "value": "2.º sem.",
             "color": "#7B2D43"
            }
           ]
+         },
+         "legend": {
+          "hide": true
          }
         },
         "label": {
@@ -1447,13 +1572,13 @@
         "showTitle": true,
         "title": "Participación de cada tier en los litros",
         "showDescription": true,
-        "description": "La mezcla: qué parte de los litros vendidos es de cada tier."
+        "description": "Qué parte de los litros es de cada tier. Gris: 1.er semestre; vino: 2.º semestre."
        }
       }
      },
      "position": {
       "x": 4,
-      "y": 7,
+      "y": 9,
       "width": 4,
       "height": 6
      }
@@ -1525,14 +1650,17 @@
           "type": "categorical",
           "mappings": [
            {
-            "value": "1.er semestre",
+            "value": "1.er sem.",
             "color": "#9AA5B1"
            },
            {
-            "value": "2.º semestre",
+            "value": "2.º sem.",
             "color": "#7B2D43"
            }
           ]
+         },
+         "legend": {
+          "hide": true
          }
         },
         "label": {
@@ -1546,13 +1674,13 @@
         "showTitle": true,
         "title": "Precio por litro dentro de cada tier",
         "showDescription": true,
-        "description": "El precio: cuánto se cobró por litro en cada tier."
+        "description": "Cuánto se cobró por litro en cada tier. Gris: 1.er semestre; vino: 2.º semestre."
        }
       }
      },
      "position": {
       "x": 8,
-      "y": 7,
+      "y": 9,
       "width": 4,
       "height": 6
      }
@@ -1660,7 +1788,7 @@
      },
      "position": {
       "x": 0,
-      "y": 13,
+      "y": 15,
       "width": 12,
       "height": 3
      }
@@ -1858,7 +1986,7 @@
        },
        "frame": {
         "showTitle": true,
-        "title": "Por mercado: ¿se repite el patrón?",
+        "title": "Por mercado: ¿recomendación o hipótesis?",
         "showDescription": true,
         "description": "Recomendación si el precio por litro sube, la mezcla explica al menos 80 % del alza, gran reserva sube al menos 5 puntos, al menos 80 % de los litros tiene costo real y hay al menos 300 líneas. Si falla algo, es hipótesis."
        }
@@ -1866,7 +1994,7 @@
      },
      "position": {
       "x": 0,
-      "y": 16,
+      "y": 18,
       "width": 12,
       "height": 7
      }
@@ -1956,7 +2084,7 @@
      },
      "position": {
       "x": 0,
-      "y": 23,
+      "y": 25,
       "width": 12,
       "height": 3
      }
@@ -2118,6 +2246,19 @@
          ],
          "disaggregated": false
         }
+       },
+       {
+        "name": "f2_correcciones_ds_monedas",
+        "query": {
+         "datasetName": "ds_monedas",
+         "parameters": [
+          {
+           "name": "correcciones",
+           "keyword": "correcciones"
+          }
+         ],
+         "disaggregated": false
+        }
        }
       ],
       "spec": {
@@ -2137,6 +2278,10 @@
          {
           "parameterName": "correcciones",
           "queryName": "f2_correcciones_ds_mes"
+         },
+         {
+          "parameterName": "correcciones",
+          "queryName": "f2_correcciones_ds_monedas"
          }
         ]
        },
@@ -2207,6 +2352,19 @@
          ],
          "disaggregated": false
         }
+       },
+       {
+        "name": "f2_litros_ds_monedas",
+        "query": {
+         "datasetName": "ds_monedas",
+         "parameters": [
+          {
+           "name": "litros",
+           "keyword": "litros"
+          }
+         ],
+         "disaggregated": false
+        }
        }
       ],
       "spec": {
@@ -2226,6 +2384,10 @@
          {
           "parameterName": "litros",
           "queryName": "f2_litros_ds_mes"
+         },
+         {
+          "parameterName": "litros",
+          "queryName": "f2_litros_ds_monedas"
          }
         ]
        },
@@ -2252,6 +2414,112 @@
       "y": 2,
       "width": 4,
       "height": 2
+     }
+    },
+    {
+     "widget": {
+      "name": "t_monedas",
+      "queries": [
+       {
+        "name": "main_query",
+        "query": {
+         "datasetName": "ds_monedas",
+         "fields": [
+          {
+           "name": "moneda_fecha",
+           "expression": "`moneda_fecha`"
+          },
+          {
+           "name": "precio_s1",
+           "expression": "`precio_s1`"
+          },
+          {
+           "name": "precio_s2",
+           "expression": "`precio_s2`"
+          },
+          {
+           "name": "alza_pct",
+           "expression": "`alza_pct`"
+          },
+          {
+           "name": "mezcla_pct_del_alza",
+           "expression": "`mezcla_pct_del_alza`"
+          }
+         ],
+         "disaggregated": true
+        }
+       }
+      ],
+      "spec": {
+       "version": 2,
+       "widgetType": "table",
+       "encodings": {
+        "columns": [
+         {
+          "fieldName": "moneda_fecha",
+          "displayName": "Moneda y fecha del dólar"
+         },
+         {
+          "fieldName": "precio_s1",
+          "displayName": "Precio/L 1.er sem.",
+          "format": {
+           "type": "number-plain",
+           "abbreviation": "none",
+           "decimalPlaces": {
+            "type": "max",
+            "places": 2
+           }
+          }
+         },
+         {
+          "fieldName": "precio_s2",
+          "displayName": "Precio/L 2.º sem.",
+          "format": {
+           "type": "number-plain",
+           "abbreviation": "none",
+           "decimalPlaces": {
+            "type": "max",
+            "places": 2
+           }
+          }
+         },
+         {
+          "fieldName": "alza_pct",
+          "displayName": "Alza del precio por litro",
+          "format": {
+           "type": "number-percent",
+           "decimalPlaces": {
+            "type": "max",
+            "places": 1
+           }
+          }
+         },
+         {
+          "fieldName": "mezcla_pct_del_alza",
+          "displayName": "Mezcla, % del alza",
+          "format": {
+           "type": "number-percent",
+           "decimalPlaces": {
+            "type": "max",
+            "places": 0
+           }
+          }
+         }
+        ]
+       },
+       "frame": {
+        "showTitle": true,
+        "title": "La decisión de definición: ¿con qué dólar se convierte?",
+        "showDescription": true,
+        "description": "Todos los mercados. En dólares el alza no depende de la fecha; en pesos, sí. La fecha de embarque no es confiable: en 30 % de las líneas es anterior a la factura."
+       }
+      }
+     },
+     "position": {
+      "x": 0,
+      "y": 4,
+      "width": 12,
+      "height": 4
      }
     },
     {
@@ -2338,7 +2606,7 @@
      },
      "position": {
       "x": 0,
-      "y": 4,
+      "y": 8,
       "width": 6,
       "height": 6
      }
@@ -2418,7 +2686,7 @@
      },
      "position": {
       "x": 6,
-      "y": 4,
+      "y": 8,
       "width": 6,
       "height": 6
      }
@@ -2448,7 +2716,7 @@
      },
      "position": {
       "x": 0,
-      "y": 10,
+      "y": 14,
       "width": 5,
       "height": 9
      }
@@ -2548,7 +2816,7 @@
      },
      "position": {
       "x": 5,
-      "y": 10,
+      "y": 14,
       "width": 7,
       "height": 9
      }
@@ -2638,7 +2906,7 @@
      },
      "position": {
       "x": 0,
-      "y": 19,
+      "y": 23,
       "width": 12,
       "height": 3
      }

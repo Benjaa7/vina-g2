@@ -1,55 +1,71 @@
-% Sección D · Prototipo usable y probado (25 %). Extensión: 2 páginas.
-% D.1 (tablero): Benja. D.2 (prueba de uso): Integrante 3. Requiere graphicx y booktabs.
+% Sección D · Métrica y sensibilidad.
+% El desarrollo (datos de entrada, cálculo tier por tier, métodos alternativos y
+% las otras tres decisiones) está en el anexo D, para respetar el límite de 6 páginas.
 
-\section{Prototipo: el tablero y su prueba de uso}
+\section{Métrica y sensibilidad}
+\label{sec:metrica}
 
-\paragraph{Para quién y cada cuánto.} Para la gerencia comercial y operaciones, una vez al mes después del cierre, en la reunión donde se fija y revisa la meta de mezcla por tier y mercado. Reemplaza la planilla que comercial arma hoy descargando el ERP a Excel (sección~E). El tablero publicado está en [COMPLETAR: enlace al tablero publicado]; el ayudante y el profesor tienen acceso al workspace.
+\paragraph{Qué medimos.} La métrica es el precio medio por litro de exportación de cada semestre de 2025:
+\[
+P = \frac{\sum_i M_i}{\sum_i L_i}, \qquad L_i = C_i \times k_i,
+\]
+donde, para cada línea de venta $i$, $M_i$ es el monto neto en USD (después de descuento), $L_i$ son los litros vendidos, $C_i$ son las cajas y $k_i$ son los litros por caja de su producto. La suma recorre las líneas de \texttt{fact\_venta} del canal exportación con fecha de factura en el semestre (10.672 en el año), incluidas las de merma, con signo negativo. Es una razón de sumas, no un promedio de precios. Entre el 1.\textsuperscript{er} y el 2.\textsuperscript{o} semestre, $P$ subió de 4,574 a 5,085 USD/L: +0,511 USD/L, un 11,2\,\%.
 
-\paragraph{Una pregunta por pantalla.} La primera página responde la pregunta de la E1 y nada más; su título es la pregunta (figura~\ref{fig:tablero}). Arriba están los filtros: moneda y fecha del dólar, correcciones de datos, litros por caja y mercado. Siempre tienen un valor, el escenario principal, de modo que una cifra nunca mezcla escenarios. Debajo, de izquierda a derecha y de arriba abajo:
-\begin{itemize}\setlength\itemsep{1pt}
-\item \textbf{La cifra clave}: el precio medio por litro del segundo semestre contra el primero (5,085 contra 4,574 USD/L), cuánto del alza explica la mezcla (108\,\%) y la participación de gran reserva (22,7\,\% $\rightarrow$ 32,5\,\%).
-\item \textbf{El valor para decidir}: un punto de gran reserva en vez de varietal vale 353 MM CLP de margen bruto al año, con la fecha de cobranza al lado (338 MM).
-\item \textbf{El gráfico que explica}: el puente del alza en mezcla, precio y cruzado, junto a la participación y el precio por litro de cada tier en cada semestre. Se ve que la gran reserva gana litros y que el precio dentro de cada tier no sube.
-\item \textbf{El corte por mercado}: la misma descomposición y el margen por litro en los 10 mercados, cada uno con su lectura, recomendación o hipótesis, y el motivo.
-\item \textbf{El pie}: última actualización, pruebas en verde, de dónde salió el dólar (API o respaldo, con fecha), período y dueño del dato.
-\end{itemize}
+\paragraph{Por qué no basta con mirar $P$.} Un precio medio puede subir por dos razones distintas: porque cada vino se vende más caro (\emph{efecto precio}) o porque, con los mismos precios, se vende una mayor proporción del vino caro (\emph{efecto mezcla}). Para separarlas usamos la descomposición estándar precio-mezcla (Kitagawa, 1955; Horngren, Datar y Rajan, \emph{Cost Accounting}): para cada tier $t$, con $w_t$ su proporción de los litros y $p_t$ su precio por litro, el cambio de $P$ se reparte en tres términos que suman exactamente el alza: mezcla $\sum_t (w_{t,2}-w_{t,1})\,p_{t,1}$, precio $\sum_t w_{t,1}\,(p_{t,2}-p_{t,1})$ y cruzado $\sum_t (w_{t,2}-w_{t,1})(p_{t,2}-p_{t,1})$. El cálculo tier por tier está en el anexo~D. El criterio, fijado antes de mirar los resultados: el alza es de mezcla si ese efecto explica más de la mitad del cambio con todos los métodos y definiciones alternativas. No usamos pruebas de significancia: los datos son todas las ventas del año, no una muestra, y la incertidumbre viene de nuestras definiciones, que es lo que miden las sensibilidades.
 
-\begin{figure}[!htbp]
-  \centering
-  % [COMPLETAR (Benja): captura de la página «Respuesta» del tablero publicado, después de los cambios de la prueba de uso]
-  \fbox{\parbox[c][4cm][c]{0.9\textwidth}{\centering Captura del tablero (página «Respuesta»)}}
-  \caption{Página «Respuesta» del tablero, con el escenario principal. Fuente: tablero AI/BI de Databricks.}
-  \label{fig:tablero}
-\end{figure}
+\paragraph{Resultado.}
 
-\paragraph{Recomendación o hipótesis, con la regla escrita.} Un mercado es \emph{recomendación} si repite el patrón del total con datos suficientes: el precio por litro sube, la mezcla explica al menos 80\,\% del alza, la gran reserva gana al menos 5 puntos, al menos 80\,\% de sus litros tiene costo real y tiene al menos 300 líneas. Si falla una condición es \emph{hipótesis}, y el tablero dice cuál. Con la definición principal los 10 mercados son recomendación: en todos la mezcla explica entre 97\,\% y 104\,\% del alza. Brasil, el único del hemisferio sur, también lo es (gran reserva de 23\,\% a 31\,\%), así que el cambio de mezcla no parece un efecto de la temporada navideña del norte (I). La regla responde a los datos: sin las correcciones, México pasa a hipótesis porque la mezcla explicaría solo 49\,\% de su alza.
+\begin{center}
+\small
+\begin{tabular}{l r r}
+\hline
+\textbf{Efecto} & \textbf{USD/L} & \textbf{\% del alza} \\
+\hline
+Mezcla & +0,551 & +108\,\% \\
+Precio & $-$0,035 & $-$7\,\% \\
+Cruzado & $-$0,005 & $-$1\,\% \\
+\hline
+\textbf{Cambio total} & \textbf{+0,511} & \textbf{100\,\%} \\
+\hline
+\end{tabular}
+\end{center}
 
-\paragraph{La segunda página es la definición.} Muestra el precio por litro de cada tier y la participación de gran reserva mes a mes, leídos directo de la metric view; las fórmulas de la sección~C; y las 15 pruebas de la última corrida con su resultado. Así, quien duda de un número ve de dónde sale sin salir del tablero.
+\noindent Vender 9,8 puntos más de gran reserva, el tier más caro, suma 0,81 USD/L al precio medio; vender 9,3 puntos menos de varietal resta 0,23. El efecto precio es negativo en los tres tiers: los precios de lista bajaron entre 0,15\,\% y 0,19\,\% y el descuento medio subió de 3,82\,\% a 4,40\,\% (ponderados por cajas). El cruzado es el 1\,\% del alza, así que la repartición no es ambigua. Según el criterio fijado, \textbf{el alza es de mezcla}.
 
-\paragraph{El tablero no calcula.} Cada gráfico lee una vista del oro o la metric view; el tablero solo filtra. Por eso no puede mostrar un número distinto del informe. Está versionado en el repositorio (\texttt{E2/tablero}), se genera desde código y \texttt{correr\_e2} lo publica al final de cada corrida.
+\paragraph{La decisión de definición: moneda y fecha de conversión.} La viña vende en dólares (V), pero sus costos y su caja están en pesos, y finanzas mira el resultado en pesos. Convertir exige elegir con qué dólar: el del día de la factura o el del día en que se cobra (factura más 60 días en el hemisferio sur y 90 en el norte, según la contraparte (V)). Cada línea se convierte con el dólar observado de su propia fecha, nunca con un promedio del período. Esta decisión sí mueve el número:
 
-\subsection*{Prueba de uso}
-% [COMPLETAR (Integrante 3): esta subsección completa, con la tabla de registro.]
-
-Dos personas ajenas al grupo, [COMPLETAR: nombre y grupo de cada una], respondieron tres preguntas usando solo el tablero publicado, sin explicación previa: (1) ¿cuánto subió el precio por litro de exportación entre semestres y qué parte se explica por la mezcla?; (2) si se convierte a pesos con la fecha estimada de cobranza en vez de la de factura, ¿cuánto sube?; (3) ¿cuánto vale en pesos de margen un punto más de gran reserva, y Brasil es recomendación o hipótesis?
-
-\begin{table}[!htbp]
-\centering\small
-\begin{tabular}{@{}l c r c p{3.6cm} p{3.6cm}@{}}
+\begin{center}
+\small
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{@{}l r@{}}
 \toprule
-Persona (grupo) & Pregunta & Tiempo & ¿Acertó? & Qué no entendió & Qué cambiamos \\
+\textbf{Definición} & \textbf{Alza del precio medio por litro} \\
 \midrule
-{[COMPLETAR]} & 1 & & & & \\
- & 2 & & & & \\
- & 3 & & & & \\
-\midrule
-{[COMPLETAR]} & 1 & & & & \\
- & 2 & & & & \\
- & 3 & & & & \\
+USD (adoptada) & +11,2\,\% \\
+CLP, dólar de la fecha de factura & +10,1\,\% \\
+CLP, dólar de la fecha de cobranza & +6,3\,\% \\
 \bottomrule
 \end{tabular}
-\end{table}
+\end{center}
 
-\noindent Al final se les preguntó si les serviría para decidir la meta de mezcla y qué les faltó: [COMPLETAR: respuesta textual de cada una].
+\noindent Según la fecha que se elija, el alza en pesos va de 10,1\,\% a 6,3\,\%: casi la mitad del 11,2\,\% en dólares. La diferencia es el dólar, que bajó entre semestres: los mismos dólares se convirtieron en menos pesos, y con la fecha de cobranza la caída es mayor porque el dólar se toma aún más tarde (M). Descartamos la fecha de embarque: el 30\,\% de las líneas de embarque tiene fecha anterior a la factura (M).
 
-\paragraph{Lista de verificación de la clase 7.} (1) Responde una pregunta: si el alza del precio por litro fue por precio o por mezcla, y cuánto vale mover la mezcla. (2) Para la gerencia comercial y operaciones, una vez al mes. (3) La cifra clave está arriba a la izquierda, con su comparación contra el semestre anterior. (4) Cada gráfico responde una parte de la pregunta: el puente separa mezcla de precio, las barras muestran qué tier se movió y la tabla dice dónde se repite. (5) Ningún eje está truncado; el puente parte de cero y sus tres barras suman el alza. (6) Las definiciones del pie las certifica la cadena: 15 de 15 pruebas en verde en la última corrida, con la fuente y la fecha del dólar.
+\paragraph{Qué cambia, qué no y por qué nos quedamos con dólares.} Cambia el tamaño del alza en pesos, no su causa: la caída del dólar no es ni precio ni mezcla, solo le resta al alza (I). Medimos en dólares porque los contratos se firman en esa moneda (V) y así la mezcla queda separada del tipo de cambio. La versión en pesos, la que llega a caja y mira finanzas, se elige en el prototipo.
+
+\paragraph{Las demás decisiones no cambian la conclusión.} Para cada una repetimos el análisis con la opción que no elegimos:
+
+\begin{center}
+\small
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{@{}l l l r@{}}
+\toprule
+\textbf{Decisión} & \textbf{Adoptada} & \textbf{Alternativa} & \textbf{Mezcla, \% del alza} \\
+\midrule
+Litros por caja magnum & 9,0 L (maestro de costos) & 18 o 4,5 L & 108,2\,\% \\
+Correcciones de limpieza & Aplicadas & Sin aplicar (ERP) & 78,2\,\% \\
+\bottomrule
+\end{tabular}
+\label{tab:sensibilidades}
+\end{center}
+
+\noindent Con la definición adoptada, la mezcla explica el 107,9\,\% del alza, y en ambas alternativas supera el 50\,\% del criterio. Sin aplicar las correcciones baja a 78,2\,\%: las cajas cargadas en botellas y los montos mal registrados meten ruido en el precio por litro, pero aun así la mezcla explica la mayor parte del alza. Las alternativas de 18 y 4,5\,L por caja son extremos hipotéticos que no cambian la respuesta; su detalle y las demás sensibilidades de la Entrega~1 (método de descomposición, merma y precio de lista) están en el anexo~D.

@@ -1,0 +1,92 @@
+% Sección A · Registro de mejora (máximo 1 página, va primero). Las referencias de sección y página
+% se generan con \ref y \pageref: no escribirlas a mano.
+\providecommand{\pend}[1]{\textcolor{red}{#1}}
+\newcolumntype{L}{>{\raggedright\arraybackslash}X}
+\newcolumntype{P}[1]{>{\raggedright\arraybackslash}p{#1}}
+
+\section{Registro de mejora}
+\label{sec:mejora}
+
+Este informe es la Entrega~1 corregida, con tres secciones nuevas: arquitectura, prototipo y adopción. La tabla recoge cada observación de la Entrega~1 (E1) y de la Presentación~1 (P1), qué hicimos y dónde quedó el cambio.
+
+\begin{center}
+\footnotesize
+\renewcommand{\arraystretch}{1.0}
+\begin{tabularx}{\textwidth}{@{}r P{0.95cm} L L P{1.35cm}@{}}
+\toprule
+\# & \textbf{Origen} & \textbf{Observación} & \textbf{Qué hicimos} & \textbf{Dónde} \\
+\midrule
+1 & E1 &
+Cajas y litros es un problema de gobierno de datos; la empresa no declaró el litro como su unidad. &
+\textbf{Atendida.} El mandato enuncia la fractura: comercial habla de cajas, operaciones de litros (V). Medir por litro es decisión nuestra (I). El acta lleva una nota de corrección. &
+§\ref{sec:mandato}, p.~\pageref{sec:mandato}; acta \\
+\addlinespace[2pt]
+2 & E1 y P1 &
+La definición que mueve el número es la fecha de conversión a pesos, no los 9, 18 o 4,5~L por caja. &
+\textbf{Atendida.} Moneda y fecha pasan al cuerpo (USD 11,2\,\%; CLP 10,1\,\% a factura; 6,3\,\% a cobranza) y se eligen en el prototipo. Litros por caja, al anexo~D. &
+§\ref{sec:metrica}, p.~\pageref{sec:metrica} \\
+\addlinespace[2pt]
+3 & E1 y P1 &
+Mostrar el 108\,\% sin las líneas corregidas (montos, monedas, botellas). &
+\textbf{Atendida.} Con esas líneas sin corregir, el alza sería 17,6\,\% y la mezcla explicaría el 78,2\,\% (M): sigue siendo la causa. Se puede ver en el prototipo. &
+§\ref{sec:metrica}, p.~\pageref{tab:sensibilidades} \\
+\addlinespace[2pt]
+4 & E1 y P1 &
+CLP 2.961~MM valoriza el pasado; falta cuánto vale cada punto de gran reserva. &
+\textbf{Atendida.} Cada punto de gran reserva en vez de varietal vale CLP 353~MM de margen bruto al año (338 con el dólar de la cobranza). Va en la primera lámina de la P2. &
+§\ref{sec:negocio}, p.~\pageref{sec:negocio} \\
+\addlinespace[2pt]
+5 & E1 &
+Las acciones no dicen cuánto cuestan. &
+\textbf{Atendida.} Incentivo de CLP 5.000 por caja incremental (CLP 127,1~MM al año para $+2,0$\,pp) y reasignación de stock sin costo; dueño: Gerencia Comercial. &
+§\ref{sec:negocio}, p.~\pageref{sec:negocio} \\
+\addlinespace[2pt]
+6 & P1 &
+«Medir y fijar metas» no es una decisión. &
+\textbf{Atendida.} Meta de $+2,0$\,pp de Gran Reserva en mercados con recomendación (CLP 706~MM/año de margen), decidida mensualmente por Gerencia Comercial. &
+§\ref{sec:negocio}, p.~\pageref{sec:negocio} \\
+\addlinespace[2pt]
+7 & P1 &
+No convertir divisas con un promedio del período. &
+\textbf{Atendida.} Toda cifra en pesos se convierte línea por línea con el dólar de su fecha; ya no se usa el 946,34. &
+§\ref{sec:negocio}, p.~\pageref{sec:negocio} \\
+\addlinespace[2pt]
+8 & P1 &
+Falta claridad en la fecha de corte y en la unidad de tiempo. &
+\textbf{Atendida.} Facturas 1-ene a 31-dic-2025, por semestre; declarado en cada figura, en el prototipo y en la bitácora. &
+§\ref{sec:metrica}, p.~\pageref{sec:metrica} \\
+\addlinespace[2pt]
+9 & P1 &
+Explicar el modelo relacional con más detención. &
+\textbf{En el informe, sí;} en la P2, no: la única lámina técnica permitida es la arquitectura. &
+§\ref{sec:modelo}, p.~\pageref{sec:modelo} \\
+\addlinespace[2pt]
+10 & E1 &
+Profundizar la modularización hacia ETL o ELT. &
+\textbf{Atendida.} Arquitectura por capas con sus tres decisiones y pruebas de calidad. &
+§\ref{sec:arquitectura}, p.~\pageref{sec:arquitectura} \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\vspace{-4pt}
+\paragraph{El número, E1 frente a hoy.}
+
+\begin{center}
+\footnotesize\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{1.05}
+\begin{tabular}{@{}l r r l@{}}
+\toprule
+\textbf{Cifra} & \textbf{E1} & \textbf{E2} & \textbf{Cambio} \\
+\midrule
+Precio medio por litro, 1.\textsuperscript{er} sem. 2025 & 4,574 USD/L & 4,574 USD/L & Ninguno \\
+Precio medio por litro, 2.\textsuperscript{o} sem. 2025 & 5,085 USD/L & 5,085 USD/L & Ninguno \\
+Alza del precio medio & +11,2\,\% & +11,2\,\% & Ninguno \\
+Parte del alza que es mezcla & 108\,\% & 108\,\% & Ninguno \\
+Ventas fuera por calidad & 1,6\,\% & 1,6\,\% & Ninguno \\
+Valor de la mezcla, CLP & 2.961 MM, venta 2.\textsuperscript{o} sem. & 353 MM/año, margen por punto & Ver nota \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent La métrica no cambió: ninguna observación tocó su definición ni su universo, y la cadena reproduce las cifras de la E1. Cambia el valor en pesos: ahora es lo que vale cada punto de mezcla hacia adelante (fila~4), en margen y no en venta, y convertido línea por línea con el dólar de su fecha (fila~7).

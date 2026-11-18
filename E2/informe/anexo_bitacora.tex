@@ -6,7 +6,8 @@
 
 Origen de cada hallazgo: \textbf{(V)} verbalizado por la contraparte, \textbf{(M)} medido sobre los datos, \textbf{(I)} inferido por el equipo. Cada supuesto registra un responsable individual y la fecha exacta de decisión.
 
-\begin{longtable}{p{0.6cm} p{3.0cm} c p{4.2cm} p{4.2cm} p{2.2cm}}
+\setlength{\tabcolsep}{4pt}
+\begin{longtable}{@{}>{\raggedright\arraybackslash}p{0.6cm} >{\raggedright\arraybackslash}p{2.8cm} c >{\raggedright\arraybackslash}p{3.9cm} >{\raggedright\arraybackslash}p{3.9cm} >{\raggedright\arraybackslash}p{2.1cm}@{}}
 \toprule
 \textbf{ID} & \textbf{Supuesto} & \textbf{Origen} & \textbf{Justificación} & \textbf{Efecto si fuera falso} & \textbf{Dueño y fecha} \\
 \midrule
@@ -38,17 +39,18 @@ Origen de cada hallazgo: \textbf{(V)} verbalizado por la contraparte, \textbf{(M
 \midrule
 \textbf{S13} & El mercado de Corea del Sur (\texttt{zona\_id} 8 inexistente) se asigna a Asia. & I & La tabla de zonas llega hasta 5 y los demás mercados asiáticos pertenecen a Asia (M/I). & Sin asignar, 1.059 líneas (1.045 del universo) quedarían sin región en los cortes geográficos. & Benjamín, 12-09-2026 \\
 \midrule
-\textbf{S14} & La fecha estimada de cobranza es factura + 60 días (hemisferio sur) y + 90 días (hemisferio norte). & I & Plazos estándar de cobro de exportación según distancia logística y tránsito marítimo para evaluar sensibilidad cambiaria (I). & Plazos mayores o menores desplazan el tipo de cambio aplicado en cobranza, pero la recomendación se mantiene rentable en ambos escenarios. & Benjamín, 13-11-2026 \\
+\textbf{S14} & La fecha estimada de cobranza es factura + 60 días (hemisferio sur) y + 90 días (hemisferio norte). & V & Quedó cerrado con la contraparte en la reunión del 4 de septiembre, según el acta (V). Se usa solo para la sensibilidad cambiaria. & Plazos mayores o menores desplazan el tipo de cambio aplicado en cobranza, pero la recomendación se mantiene rentable en ambos escenarios. & Benjamín, 13-11-2026 \\
 \midrule
 \textbf{S15} & El valor de un punto de mezcla (CLP 353\,MM/año) supone volumen total y margen unitario por tier constantes. & I & Permite aislar el impacto marginal puro de sustituir 1\,\% del volumen de Varietal (911\,CLP/L) por Gran Reserva (3.997\,CLP/L) sobre 11,44\,MM\,L anuales (M/I). & Si ganar cuota de Gran Reserva requiere descuentos agresivos que compriman su margen unitario, el retorno por punto será proporcionalmente menor. & Benjamín, 13-11-2026 \\
 \midrule
 \textbf{S16} & El margen bruto calculado es margen de producto (ingreso neto menos costo de producto), excluyendo flete y aranceles. & V/M & El maestro de costos solo contiene costo de producción por caja y la contraparte indicó que los costos logísticos internacionales van fuera del ERP de ventas (V/M). & Incluir flete internacional o aranceles reduciría el margen absoluto en pesos, aunque el diferencial por caja entre tiers seguiría favoreciendo a Gran Reserva. & Benjamín, 13-11-2026 \\
 \midrule
-\textbf{S17} & Un mercado es \emph{recomendación} si sube su precio/L, la mezcla explica $\ge 80\,\%$ del alza, Gran Reserva gana $\ge 5$\,pp, tiene $\ge 80\,\%$ de litros con costo real y $\ge 300$ líneas; si falla una condición, es \emph{hipótesis}. & M/I & Permite separar mercados con evidencia robusta para fijar metas comerciales de aquellos donde el alza puede deberse a ruido o falta de cobertura (ej.\ sin correcciones, México pasa a hipótesis con 49\,\% de mezcla) (M/I). & Fijar metas agresivas de mezcla en mercados que no cumplen volumen o cobertura mínima podría basarse en fluctuaciones muestrales. & Benjamín y Sebastián Valdés, 17-11-2026 \\
+\textbf{S17} & Un mercado es \emph{recomendación} si sube su precio/L, la mezcla explica $\geq 80$\,\% del alza, Gran Reserva gana $\ge 5$\,pp, tiene $\geq 80$\,\% de litros con costo real y $\ge 300$ líneas; si falla una condición, es \emph{hipótesis}. & M/I & Permite separar mercados con evidencia robusta para fijar metas comerciales de aquellos donde el alza puede deberse a ruido o falta de cobertura (ej.\ sin correcciones, México pasa a hipótesis con 49\,\% de mezcla) (M/I). & Fijar metas agresivas de mezcla en mercados que no cumplen volumen o cobertura mínima podría basarse en fluctuaciones muestrales. & Benjamín y Sebastián Valdés, 17-11-2026 \\
 \midrule
 \textbf{S18} & El reporte mensual manual de Comercial demanda 16 horas-persona al mes y el incentivo comercial propuesto cuesta CLP 5.000 por caja incremental. & I & Estimación conservadora de extracción ERP, cruce en Excel y conciliación mensual de cierres (C9), junto a un esquema de comisión/incentivo equivalente al 18\,\% del margen incremental por caja (CLP 27.766) (I). & Si el tiempo liberado es menor o el incentivo requerido por caja es mayor, el punto de equilibrio se desplaza, manteniéndose atractivo mientras el costo por caja sea inferior a CLP 27.766. & Sebastián Valdés, 17-11-2026 \\
 \bottomrule
 \end{longtable}
+\setlength{\tabcolsep}{6pt}
 
 \begin{figure}[!htbp]
   \centering

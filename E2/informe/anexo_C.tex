@@ -33,7 +33,7 @@ Columna & Rol & Aditiv. & Unidad & Descripción & Origen y regla \\
 \texttt{moneda\_imputada} & indicador & aditiva & 0/1 & 1 si la moneda venía vacía. & ventas.\allowbreak{}moneda\_id nulo; se imputa por mercado \\
 \texttt{costo\_imputado} & indicador & aditiva & 0/1 & 1 si el costo de la caja se imputó por tier y añada (no venía en el maestro). & origen\_costos\_productos.\allowbreak{}csv sin costo para ese producto y añada \\
 \texttt{cajas\_registradas} & medida & aditiva & cajas & Cajas tal como vienen en el ERP, antes de corregir las cargadas en botellas. & ventas.\allowbreak{}cajas sin corregir; solo para el escenario sin correcciones \\
-\texttt{monto\_neto\_registrado\_usd} & medida & aditiva & USD & Monto neto tal como viene en el ERP, en dólares, antes de recalcularlo. & ventas.\allowbreak{}monto\_neto sin recalcular; solo para el escenario sin correcciones \\
+\texttt{monto\_neto\_\allowbreak registrado\_usd} & medida & aditiva & USD & Monto neto tal como viene en el ERP, en dólares, antes de recalcularlo. & ventas.\allowbreak{}monto\_neto sin recalcular; solo para el escenario sin correcciones \\
 \texttt{tipo\_cambio\_cobranza} & contexto & no aditiva & CLP/USD & Dólar observado a la fecha estimada de cobranza. & fecha de factura + 60 días (hemisferio sur) o + 90 (norte); misma regla de días hábiles \\
 \texttt{tipo\_cambio\_embarque} & contexto & no aditiva & CLP/USD & Dólar observado a la fecha de embarque (fecha poco confiable). & origen\_embarques.\allowbreak{}json; solo para la sensibilidad, no para la métrica \\
 \bottomrule

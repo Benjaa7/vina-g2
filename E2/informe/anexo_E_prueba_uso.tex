@@ -1,0 +1,36 @@
+% Anexo E · Prueba de uso del prototipo (componente D). Resumen en la sección Prototipo.
+% Requiere el paquete array (ya está en el preámbulo).
+
+\section*{Anexo E. Prueba de uso del prototipo}
+\addcontentsline{toc}{section}{Anexo E. Prueba de uso del prototipo}
+
+\paragraph{Quiénes y cómo.} Italo Suazo, ingeniero civil, e Ignacio Quinteros, ingeniero civil industrial. Los dos son ajenos al grupo y al curso, y usan Power BI en su trabajo, así que conocen los tableros pero no el caso. Cada uno recibió una captura de la página «Respuesta» del tablero, con la definición principal, y respondió por escrito, por separado y sin ayuda, estas tres preguntas:
+
+\begin{enumerate}\itemsep0pt
+\item ¿Cuánto subió el precio por litro de exportación entre semestres, y qué parte se explica por la mezcla? \emph{Respuesta esperada: 11,2\,\%, de 4,574 a 5,085 USD/L; la mezcla explica el 108\,\%.}
+\item Si se convierte a pesos con la fecha estimada de cobranza en vez de la de factura, ¿cuánto sube? \emph{Esperada: 6,3\,\% (10,1\,\% con la factura).}
+\item ¿Cuánto vale en pesos de margen un punto más de gran reserva, y Brasil es recomendación o hipótesis? \emph{Esperada: CLP 353 millones al año (338 con el dólar de la cobranza); Brasil es recomendación, con la gran reserva de 23\,\% a 31\,\%.}
+\end{enumerate}
+
+\paragraph{Límites.} Al trabajar sobre una captura no podían cambiar un filtro ni bajar a la tabla de mercados, que queda bajo los gráficos. Por eso la prueba midió si la pantalla se lee, no si se navega. El tiempo es el que cada uno tardó en dar su respuesta, o en decir que no podía darla.
+
+\begin{center}\footnotesize
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{1.6cm} c c >{\raggedright\arraybackslash}p{3.1cm} >{\raggedright\arraybackslash}p{3.4cm} >{\raggedright\arraybackslash}p{3.7cm}@{}}
+\toprule
+\textbf{Persona} & \textbf{Preg.} & \textbf{Tiempo} & \textbf{¿Respondió?} & \textbf{Qué le costó} & \textbf{Qué cambiamos} \\
+\midrule
+Italo Suazo & 1 & 3 min & Sí: 4,57 a 5,08, +0,51 y 11,2\,\%, calculado a mano; mezcla 108\,\% & El tablero no mostraba el alza en porcentaje & Cifra nueva «Alza del precio por litro», la primera de la fila \\
+ & 2 & 2 min & No: la respuesta estaba detrás del selector y en una captura no podía cambiarlo & La respuesta exigía cambiar el filtro de moneda & Tabla en la segunda página con USD y las tres fechas del dólar lado a lado \\
+ & 3 & 4 min & En parte: 353 MM, leídos como USD; no vio el valor con la cobranza ni a Brasil & De qué moneda era el valor; la tabla de mercados quedaba fuera de la pantalla & «MM CLP» en el título del valor; el encabezado dice que la lectura por mercado está al final \\
+\midrule
+Ignacio Quinteros & 1 & 2 min & Sí: cerca de 11\,\%; mezcla 108\,\% (+0,551; precio $-$0,035; cruzado $-$0,005) & Un 108\,\% sin ver el total; una línea sin rótulo cerca de 0,49 en la barra de mezcla & Barra «Alza total» (0,511) junto a mezcla, precio y cruzado, en vez de la cascada \\
+ & 2 & 1 min & No: la vista estaba en USD y no se podía calcular & Había que cambiar el filtro & La misma tabla de la segunda página \\
+ & 3 & 3 min & En parte: 353 MM («supongo CLP»); no vio el 338 ni a Brasil & Subtítulos y leyendas cortados («1.er semes\ldots») & Textos más cortos, cifras más altas y el color de cada semestre dicho en la descripción \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\paragraph{Cómo quedan las tres preguntas.} La primera se lee en la fila de cifras: 11,2\,\% y 108\,\%. La segunda, en la tabla de monedas de la segunda página, sin tocar un filtro. La tercera, en la cifra «Valor de 1 punto de gran reserva (MM CLP)», en la tabla de valor que está debajo de los gráficos (353 y 338) y en la tabla de mercados. Todos los cambios están en \texttt{E2/tablero/generar\_tablero.py}, y el tablero publicado ya los tiene.
+
+% Segunda ronda (opcional). Si se repite con el tablero vivo, agregar aquí una tabla con la misma forma.

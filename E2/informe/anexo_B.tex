@@ -1,0 +1,34 @@
+% Anexo B · Reglas de limpieza y pruebas de calidad de la cadena. Sale del cuerpo por el límite de páginas.
+
+\section*{Anexo B. Reglas de limpieza y pruebas de calidad de la cadena}
+\addcontentsline{toc}{section}{Anexo B. Reglas de limpieza y pruebas de calidad de la cadena}
+
+\paragraph{Reglas de limpieza.} La cadena no corrige las fuentes: las lee como vienen y aplica reglas explícitas en la capa plata, cada una registrada con su conteo en \texttt{E2/output/cobertura.md}. Las principales: fechas leídas en sus cuatro formatos, 138 duplicados eliminados tras normalizar, precio unitario interpretado según el canal, moneda vacía imputada por mercado, cajas cargadas en botellas divididas por 12 o 10, monto neto recalculado cuando difiere más de 0,5\,\% de cajas $\times$ precio $\times$ (1 $-$ descuento), cepas normalizadas al catálogo del ERP y costos faltantes imputados por tier y añada. Las líneas de merma se conservan; las 83 facturas de 2026 quedan en \texttt{fact\_venta} pero fuera del universo, porque la empresa cierra el año por factura. Cada regla deja registrado cuántas filas tocó, de modo que la cobertura se reconstruye desde la ejecución y no a mano; en Databricks el registro sale idéntico al de la E1.
+
+\paragraph{Pruebas de calidad.} Corren en cada ejecución, entre el oro borrador y la publicación. Si una que bloquea falla, el job se detiene y el oro publicado y el tablero no cambian; las que avisan se registran y se informan. El resultado de cada una queda en \texttt{E2/output/dq\_resultados.csv}.
+
+\begin{center}
+\footnotesize
+\renewcommand{\arraystretch}{1.1}
+\begin{tabular}{@{}l p{8.2cm} l p{3.2cm}@{}}
+\toprule
+\textbf{Capa} & \textbf{Qué verifica} & \textbf{Si falla} & \textbf{Última corrida} \\
+\midrule
+Bronce & SQLite: están las 7 tablas del ERP con sus columnas & bloquea & pasa \\
+Bronce & JSON de embarques: estructura, campos requeridos y cajas numéricas & bloquea & pasa (3.064 embarques) \\
+Plata & \texttt{venta\_id} único después de quitar duplicados & bloquea & pasa (13.845 distintos) \\
+Plata & CSV de costos: columnas esperadas y 9,0~L por caja en ambos formatos & bloquea & pasa (96 productos y añadas) \\
+Plata & Dólar para cada fecha de factura y de cobranza, entre 600 y 1.200 CLP/USD & bloquea & pasa (2025 por API, 2026 por respaldo) \\
+Oro & \texttt{fact\_venta}: clave única & bloquea & pasa \\
+Oro & \texttt{fact\_venta}: sin huérfanos en las cuatro dimensiones & bloquea & pasa (0 huérfanos) \\
+Oro & Fechas de factura dentro del período & bloquea & pasa \\
+Oro & Conciliación plata $\rightarrow$ oro: no se pierden líneas ni litros & bloquea & pasa (13.845 líneas y 15.345.639~L) \\
+Oro & Litros distintos de cero en todas las líneas & bloquea & pasa \\
+Plata & Precio de lista (15 a 120 USD por caja) y descuento (0 a 30\,\%) dentro de rango & avisa & pasa \\
+Oro & Cifras de control de la E1 (4,574 y 5,085 USD/L; 10.672 líneas) & avisa & pasa \\
+Oro & Idempotencia: mismas líneas y montos que la corrida anterior & avisa & pasa \\
+Oro & Acuerdo de servicio: al menos 80\,\% de los litros con costo real & avisa & pasa (82,8\,\%) \\
+Oro & Acuerdo de servicio: al menos 98\,\% de las ventas llega a \texttt{fact\_venta} & avisa & pasa (99,0\,\%) \\
+\bottomrule
+\end{tabular}
+\end{center}

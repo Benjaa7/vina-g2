@@ -3,6 +3,8 @@
 \section*{Anexo B. Reglas de limpieza y pruebas de calidad de la cadena}
 \addcontentsline{toc}{section}{Anexo B. Reglas de limpieza y pruebas de calidad de la cadena}
 
+\noindent\emph{Los anexos B, C y D conservan la letra que tenían en la Entrega~1 y el E es nuevo. No hay anexo A porque el registro de mejora cabe completo en la sección~\ref{sec:mejora}.}
+
 \paragraph{Reglas de limpieza.} La cadena no corrige las fuentes: las lee como vienen y aplica reglas explícitas en la capa plata, cada una registrada con su conteo en \texttt{E2/output/cobertura.md}. Las principales: fechas leídas en sus cuatro formatos, 138 duplicados eliminados tras normalizar, precio unitario interpretado según el canal, moneda vacía imputada por mercado, cajas cargadas en botellas divididas por 12 o 10, monto neto recalculado cuando difiere más de 0,5\,\% de cajas $\times$ precio $\times$ (1 $-$ descuento), cepas normalizadas al catálogo del ERP y costos faltantes imputados por tier y añada. Las líneas de merma se conservan; las 83 facturas de 2026 quedan en \texttt{fact\_venta} pero fuera del universo, porque la empresa cierra el año por factura. Cada regla deja registrado cuántas filas tocó, de modo que la cobertura se reconstruye desde la ejecución y no a mano; en Databricks el registro sale idéntico al de la E1.
 
 \paragraph{Pruebas de calidad.} Corren en cada ejecución, entre el oro borrador y la publicación. Si una que bloquea falla, el job se detiene y el oro publicado y el tablero no cambian; las que avisan se registran y se informan. El resultado de cada una queda en \texttt{E2/output/dq\_resultados.csv}.

@@ -2,6 +2,8 @@
 
 Misma pregunta de negocio que la E1: el precio promedio por litro de exportación subió 11,2 % entre el primer y el segundo semestre de 2025 (4,574 → 5,085 USD/L). ¿Fue por precio o por mezcla? En la E2 la cadena corre en **Databricks Free Edition**, con capas bronce, plata y oro en Unity Catalog, pruebas de calidad antes de publicar, una definición única de la métrica (metric view) y un tablero AI/BI.
 
+**Tablero publicado:** [Vallehondo · Precio por litro de exportación](https://dbc-c40c64f6-aa40.cloud.databricks.com/dashboardsv3/01f1df8721bb10a6b14af51e24530fc6/published?o=7474648132034809). Se abre con una cuenta del workspace del equipo. Quien corra la cadena en su propio workspace obtiene su propia copia del tablero, con el enlace al final de la corrida.
+
 ## Cómo correrlo de cero (un solo paso)
 
 1. Entrar a un workspace de Databricks Free Edition (sirve uno recién creado).
